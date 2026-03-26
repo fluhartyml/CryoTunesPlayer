@@ -281,7 +281,7 @@ enum MusicStationOption: String, CaseIterable {
         case .infiniteRain: return "infinite rain"
         case .forestSounds: return "forest sounds apple music wellbeing"
         case .babblingBrook: return "babbling brook nature sounds nature sound collection"
-        case .tropicalThunderstorm: return "a majestic tropical thunderstorm"
+        case .tropicalThunderstorm: return "thunderstorms"
         case .oceanWavesThunder: return "ocean waves gentle thunder and rain"
         case .waterfallAndRain: return "healing sounds of nature waterfall and rain"
         case .tibetanMonksOm: return "tibetan monks chanting om for deep meditation"
