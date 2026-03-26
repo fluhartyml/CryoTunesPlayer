@@ -19,24 +19,25 @@
 //   [x] GitHub repo (fluhartyml/CryoTunesPlayer)
 //   [x] Wiki with hero icon
 //   [x] App icons (light + dark variants)
-//   [ ] Retro 90s player UI (ice blue motif)
-//   [ ] MusicKit integration — streaming playback
-//   [ ] 80+ music stations (reuse from Tally Matrix Clock)
+//   [x] Retro 90s player UI (ice blue motif)
+//   [x] MusicKit integration — streaming playback
+//   [x] 80+ music stations (reuse from Tally Matrix Clock)
 //       - Popular Hits decade picker (1958-2025)
 //       - Genre stations: Big Band, Jazz Age, Ragtime, etc.
 //       - Three-level navigation: Category → Decade → Year
-//   [ ] Album art display with song title + artist
+//   [x] Album art display with song title + artist
+//   [x] LCD ticker (time, date, local weather via WeatherKit)
+//   [x] Station persistence across launches (no auto-play)
 //   [ ] Custom background image (PhotosPicker, user-defined, persisted)
 //   [ ] Sleep timer (30m, 1h, 2h, 4h)
 //   [ ] AirPlay 2 output picker
-//   [ ] Play/Pause/Skip controls
+//   [x] Play/Pause/Skip/Stop controls
 //   [ ] Now Playing info on lock screen
-//   [ ] Settings screen
+//   [x] Settings screen
 //
 // v1.1+ — Future Enhancements (raise iOS minimum as needed)
 // ----------------------------------------------------------
 //   [ ] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
-//   [ ] WeatherKit local weather ticker (requires NSLocationWhenInUseUsageDescription)
 //   [ ] Dark/light automatic icon switching (iOS 18+)
 //   [ ] Additional color themes beyond ice blue
 //   [ ] Landscape mode

@@ -10,6 +10,8 @@ import MusicKit
 
 struct ContentView: View {
     @State private var playerManager = MusicPlayerManager()
+    @State private var weatherManager = WeatherManager()
+    @State private var leaderSync = LeaderFollowerSync()
     @State private var showSettings = false
     @AppStorage("backgroundImagePath") private var backgroundImagePath: String = ""
 
@@ -43,12 +45,18 @@ struct ContentView: View {
                 // Track info
                 trackInfoView
 
-                Spacer().frame(height: 16)
+                Spacer().frame(height: 12)
 
-                // Progress / timer display
+                // LCD ticker — time, date, weather
+                LCDTickerView(weatherManager: weatherManager)
+                    .padding(.horizontal, 32)
+
+                Spacer().frame(height: 8)
+
+                // Sleep timer display
                 timerDisplay
 
-                Spacer().frame(height: 16)
+                Spacer().frame(height: 12)
 
                 // Transport controls
                 transportControls
@@ -63,9 +71,18 @@ struct ContentView: View {
             .padding(.bottom, 20)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(playerManager: playerManager)
+            SettingsView(playerManager: playerManager, leaderSync: leaderSync)
         }
         .preferredColorScheme(.dark)
+        .onAppear {
+            weatherManager.requestWeather()
+            leaderSync.onStationChanged = { station in
+                Task { await playerManager.play(station: station) }
+            }
+            leaderSync.onSleepTimerChanged = { minutes in
+                playerManager.startSleepTimer(minutes: minutes)
+            }
+        }
     }
 
     // MARK: - Background

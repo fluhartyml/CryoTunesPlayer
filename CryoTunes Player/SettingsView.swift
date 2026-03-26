@@ -11,6 +11,7 @@ import AVKit
 
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlayerManager
+    @Bindable var leaderSync: LeaderFollowerSync
     @Environment(\.dismiss) private var dismiss
     @AppStorage("backgroundImagePath") private var backgroundImagePath: String = ""
     @AppStorage("selectedSleepTimer") private var selectedSleepTimerRaw: Int = 0
@@ -39,6 +40,9 @@ struct SettingsView: View {
 
                     // Background Image
                     backgroundSection
+
+                    // Leader/Follower
+                    followerSection
 
                     // About
                     aboutSection
@@ -335,6 +339,52 @@ struct SettingsView: View {
             try? FileManager.default.removeItem(atPath: backgroundImagePath)
         }
         backgroundImagePath = ""
+    }
+
+    // MARK: - Leader/Follower
+
+    private var followerSection: some View {
+        sectionContainer(title: "Tally Matrix Sync") {
+            VStack(spacing: 12) {
+                HStack {
+                    Text("Follow Leader")
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundStyle(iceBlue)
+                    Spacer()
+                    Toggle("", isOn: Binding(
+                        get: { leaderSync.followerEnabled },
+                        set: { leaderSync.followerEnabled = $0 }
+                    ))
+                    .tint(iceAccent)
+                    .labelsHidden()
+                }
+
+                if leaderSync.followerEnabled {
+                    HStack {
+                        Image(systemName: leaderSync.isConnected ? "antenna.radiowaves.left.and.right" : "antenna.radiowaves.left.and.right.slash")
+                            .font(.system(size: 12))
+                            .foregroundStyle(leaderSync.isConnected ? iceAccent : .red.opacity(0.6))
+                        Text(leaderSync.isConnected ? "Connected to \(leaderSync.leaderDeviceName)" : "Searching for leader...")
+                            .font(.system(size: 12, design: .monospaced))
+                            .foregroundStyle(leaderSync.isConnected ? iceAccent.opacity(0.7) : iceBorder.opacity(0.5))
+                        Spacer()
+                    }
+
+                    if leaderSync.isConnected {
+                        HStack {
+                            Text("Station: \(leaderSync.leaderStation.isEmpty ? "—" : leaderSync.leaderStation)")
+                                .font(.system(size: 11, design: .monospaced))
+                                .foregroundStyle(iceBorder.opacity(0.6))
+                            Spacer()
+                        }
+                    }
+                }
+
+                Text("When enabled, CryoTunes follows your Tally Matrix Clock leader for station and sleep timer changes.")
+                    .font(.system(size: 11, design: .monospaced))
+                    .foregroundStyle(iceBorder.opacity(0.4))
+            }
+        }
     }
 
     // MARK: - About

@@ -12,9 +12,17 @@ import Combine
 
 @Observable
 class MusicPlayerManager {
-    var currentStation: MusicStationOption = .none
+    var currentStation: MusicStationOption = .none {
+        didSet {
+            UserDefaults.standard.set(currentStation.rawValue, forKey: "lastStation")
+        }
+    }
     var isPlaying = false
-    var nowPlayingTitle = ""
+    var nowPlayingTitle = "" {
+        didSet {
+            UserDefaults.standard.set(nowPlayingTitle, forKey: "lastNowPlayingTitle")
+        }
+    }
     var currentSongTitle = ""
     var currentArtistName = ""
     var currentArtworkURL: URL?
@@ -27,6 +35,13 @@ class MusicPlayerManager {
     private var nowPlayingTask: Task<Void, Never>?
 
     init() {
+        // Restore last station without auto-playing
+        if let savedStation = UserDefaults.standard.string(forKey: "lastStation"),
+           let station = MusicStationOption(rawValue: savedStation),
+           station != .none {
+            currentStation = station
+            nowPlayingTitle = UserDefaults.standard.string(forKey: "lastNowPlayingTitle") ?? station.rawValue
+        }
         startNowPlayingObserver()
     }
 
@@ -141,10 +156,15 @@ class MusicPlayerManager {
         if player.state.playbackStatus == .playing {
             player.pause()
             isPlaying = false
-        } else {
+        } else if player.state.playbackStatus == .paused {
             Task {
                 try? await player.play()
                 await MainActor.run { isPlaying = true }
+            }
+        } else if currentStation != .none {
+            // Nothing loaded yet — start the saved station
+            Task {
+                await play(station: currentStation)
             }
         }
     }
