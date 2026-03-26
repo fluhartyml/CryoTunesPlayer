@@ -29,7 +29,12 @@ struct ContentView: View {
 
             // Main player UI
             VStack(spacing: 0) {
-                // Top bar
+                // LCD ticker at top
+                LCDTickerView(weatherManager: weatherManager)
+                    .padding(.horizontal, 16)
+                    .padding(.bottom, 4)
+
+                // Title + gear bar
                 topBar
                     .padding(.horizontal, 16)
                     .padding(.bottom, 6)
@@ -44,12 +49,6 @@ struct ContentView: View {
 
                 // Track info
                 trackInfoView
-
-                Spacer().frame(height: 12)
-
-                // LCD ticker — time, date, weather
-                LCDTickerView(weatherManager: weatherManager)
-                    .padding(.horizontal, 32)
 
                 Spacer().frame(height: 8)
 
@@ -106,9 +105,14 @@ struct ContentView: View {
 
     private var topBar: some View {
         HStack {
-            Text("CryoTunes")
-                .font(.system(size: 20, weight: .bold, design: .monospaced))
-                .foregroundStyle(iceBlue)
+            VStack(alignment: .leading, spacing: 0) {
+                Text("CryoTunes")
+                    .font(.system(size: 20, weight: .bold, design: .monospaced))
+                    .foregroundStyle(iceBlue)
+                Text("Player")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceBlue.opacity(0.6))
+            }
 
             Spacer()
 

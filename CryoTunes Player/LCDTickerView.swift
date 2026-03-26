@@ -101,19 +101,23 @@ struct LCDTickerView: View {
                 .padding(.horizontal, 8)
             }
 
-            // Hidden text for measurement
-            Text(tickerText)
-                .font(tickerFont)
-                .fixedSize()
-                .hidden()
-                .background(
-                    GeometryReader { textGeo in
-                        Color.clear
-                            .onAppear { textWidth = textGeo.size.width }
-                            .onChange(of: tickerText) { _, _ in
-                                textWidth = textGeo.size.width
+            // Hidden text for measurement — must not affect parent layout
+            Color.clear
+                .frame(width: 0, height: 0)
+                .overlay(
+                    Text(tickerText)
+                        .font(tickerFont)
+                        .fixedSize()
+                        .hidden()
+                        .background(
+                            GeometryReader { textGeo in
+                                Color.clear
+                                    .onAppear { textWidth = textGeo.size.width }
+                                    .onChange(of: tickerText) { _, _ in
+                                        textWidth = textGeo.size.width
+                                    }
                             }
-                    }
+                        )
                 )
         }
         .frame(height: 30)
