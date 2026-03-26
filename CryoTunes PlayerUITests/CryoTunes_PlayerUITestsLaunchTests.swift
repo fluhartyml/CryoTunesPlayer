@@ -1,13 +1,13 @@
 //
-//  ChryoTunes_PlayerUITestsLaunchTests.swift
-//  ChryoTunes PlayerUITests
+//  CryoTunes_PlayerUITestsLaunchTests.swift
+//  CryoTunes PlayerUITests
 //
 //  Created by Michael Fluharty on 3/26/26.
 //
 
 import XCTest
 
-final class ChryoTunes_PlayerUITestsLaunchTests: XCTestCase {
+final class CryoTunes_PlayerUITestsLaunchTests: XCTestCase {
 
     override class var runsForEachTargetApplicationUIConfiguration: Bool {
         true

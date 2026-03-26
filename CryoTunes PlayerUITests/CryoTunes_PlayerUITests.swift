@@ -1,13 +1,13 @@
 //
-//  ChryoTunes_PlayerUITests.swift
-//  ChryoTunes PlayerUITests
+//  CryoTunes_PlayerUITests.swift
+//  CryoTunes PlayerUITests
 //
 //  Created by Michael Fluharty on 3/26/26.
 //
 
 import XCTest
 
-final class ChryoTunes_PlayerUITests: XCTestCase {
+final class CryoTunes_PlayerUITests: XCTestCase {
 
     override func setUpWithError() throws {
         // Put setup code here. This method is called before the invocation of each test method in the class.
