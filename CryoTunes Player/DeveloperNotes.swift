@@ -46,6 +46,7 @@
 //   [ ] iPad support
 //   [ ] Widget for home screen
 //   [ ] Queue position persistence (resume exact track on relaunch)
+//   [ ] Custom background image (z-ordering issue: image renders over UI — needs proper layer fix)
 //   [ ] Background image persistence survives clean build (dev-only issue, works for App Store users)
 //   [ ] Graceful error messages (no subscription, no network)
 //

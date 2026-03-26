@@ -13,7 +13,7 @@ struct ContentView: View {
     @State private var weatherManager = WeatherManager()
     // @State private var leaderSync = LeaderFollowerSync() // v1.1: CloudKit follower sync
     @State private var showSettings = false
-    @AppStorage("backgroundImagePath") private var backgroundImagePath: String = ""
+    // Background image deferred to v1.1
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -32,7 +32,7 @@ struct ContentView: View {
                 // Top bar
                 topBar
                     .padding(.horizontal, 16)
-                    .padding(.top, 8)
+                    .padding(.bottom, 6)
 
                 Spacer()
 
@@ -90,51 +90,32 @@ struct ContentView: View {
 
     @ViewBuilder
     private var backgroundLayer: some View {
-        if !backgroundImagePath.isEmpty, let image = loadBackgroundImage() {
-            Image(uiImage: image)
-                .resizable()
-                .aspectRatio(contentMode: .fill)
-                .ignoresSafeArea()
-                .overlay(Color.black.opacity(0.65))
-        } else {
-            LinearGradient(
-                colors: [
-                    Color(red: 0.05, green: 0.08, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.25),
-                    Color(red: 0.05, green: 0.08, blue: 0.15)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-            .ignoresSafeArea()
-        }
-    }
-
-    private func loadBackgroundImage() -> UIImage? {
-        guard !backgroundImagePath.isEmpty else { return nil }
-        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-        let fullPath = documentsPath.appendingPathComponent(backgroundImagePath)
-        guard FileManager.default.fileExists(atPath: fullPath.path) else { return nil }
-        guard let data = try? Data(contentsOf: fullPath) else { return nil }
-        return UIImage(data: data)
+        LinearGradient(
+            colors: [
+                Color(red: 0.05, green: 0.08, blue: 0.15),
+                Color(red: 0.1, green: 0.15, blue: 0.25),
+                Color(red: 0.05, green: 0.08, blue: 0.15)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
+        .ignoresSafeArea()
     }
 
     // MARK: - Top Bar
 
     private var topBar: some View {
         HStack {
-            // Retro bevel title
             Text("CryoTunes")
                 .font(.system(size: 20, weight: .bold, design: .monospaced))
                 .foregroundStyle(iceBlue)
-                .shadow(color: iceGlow.opacity(0.5), radius: 4)
 
             Spacer()
 
             Button {
                 showSettings = true
             } label: {
-                Image(systemName: "gear")
+                Image(systemName: "gearshape.fill")
                     .font(.system(size: 20))
                     .foregroundStyle(iceBlue)
             }
