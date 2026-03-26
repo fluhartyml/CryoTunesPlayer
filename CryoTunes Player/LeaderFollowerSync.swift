@@ -31,7 +31,10 @@ class LeaderFollowerSync {
         }
     }
 
-    private let container = CKContainer(identifier: "iCloud.com.fluhartyml.Tally-Matrix-Clock")
+    private var container: CKContainer? {
+        guard followerEnabled else { return nil }
+        return CKContainer(identifier: "iCloud.com.fluhartyml.Tally-Matrix-Clock")
+    }
     private var pollTimer: Timer?
     private var lastStationRaw = ""
     private var lastSleepMinutes = 0
@@ -40,10 +43,9 @@ class LeaderFollowerSync {
     var onSleepTimerChanged: ((Int) -> Void)?
 
     init() {
-        followerEnabled = UserDefaults.standard.bool(forKey: "followerEnabled")
-        if followerEnabled {
-            startPolling()
-        }
+        // Always start in leader mode — user must manually enable follower
+        followerEnabled = false
+        UserDefaults.standard.set(false, forKey: "followerEnabled")
     }
 
     private func startPolling() {
@@ -59,6 +61,7 @@ class LeaderFollowerSync {
     }
 
     private func pullFromCloud() {
+        guard let container else { return }
         let recordID = CKRecord.ID(recordName: "SharedSettings", zoneID: .default)
         let database = container.publicCloudDatabase
 

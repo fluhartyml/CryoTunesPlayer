@@ -11,7 +11,7 @@ import MusicKit
 struct ContentView: View {
     @State private var playerManager = MusicPlayerManager()
     @State private var weatherManager = WeatherManager()
-    @State private var leaderSync = LeaderFollowerSync()
+    // @State private var leaderSync = LeaderFollowerSync() // v1.1: CloudKit follower sync
     @State private var showSettings = false
     @AppStorage("backgroundImagePath") private var backgroundImagePath: String = ""
 
@@ -71,17 +71,18 @@ struct ContentView: View {
             .padding(.bottom, 20)
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(playerManager: playerManager, leaderSync: leaderSync)
+            SettingsView(playerManager: playerManager)
         }
         .preferredColorScheme(.dark)
         .onAppear {
             weatherManager.requestWeather()
-            leaderSync.onStationChanged = { station in
-                Task { await playerManager.play(station: station) }
-            }
-            leaderSync.onSleepTimerChanged = { minutes in
-                playerManager.startSleepTimer(minutes: minutes)
-            }
+            // v1.1: CloudKit follower sync callbacks
+            // leaderSync.onStationChanged = { station in
+            //     Task { await playerManager.play(station: station) }
+            // }
+            // leaderSync.onSleepTimerChanged = { minutes in
+            //     playerManager.startSleepTimer(minutes: minutes)
+            // }
         }
     }
 
@@ -94,7 +95,7 @@ struct ContentView: View {
                 .resizable()
                 .aspectRatio(contentMode: .fill)
                 .ignoresSafeArea()
-                .overlay(Color.black.opacity(0.55))
+                .overlay(Color.black.opacity(0.65))
         } else {
             LinearGradient(
                 colors: [
@@ -110,8 +111,11 @@ struct ContentView: View {
     }
 
     private func loadBackgroundImage() -> UIImage? {
-        let url = URL(fileURLWithPath: backgroundImagePath)
-        guard let data = try? Data(contentsOf: url) else { return nil }
+        guard !backgroundImagePath.isEmpty else { return nil }
+        let documentsPath = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+        let fullPath = documentsPath.appendingPathComponent(backgroundImagePath)
+        guard FileManager.default.fileExists(atPath: fullPath.path) else { return nil }
+        guard let data = try? Data(contentsOf: fullPath) else { return nil }
         return UIImage(data: data)
     }
 

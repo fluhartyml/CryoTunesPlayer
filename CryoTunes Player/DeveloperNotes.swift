@@ -37,12 +37,17 @@
 //
 // v1.1+ — Future Enhancements (raise iOS minimum as needed)
 // ----------------------------------------------------------
+//   [ ] Tally Matrix Clock leader/follower sync via CloudKit
+//   [ ] iCloud sync for settings + background image across devices
 //   [ ] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
 //   [ ] Dark/light automatic icon switching (iOS 18+)
 //   [ ] Additional color themes beyond ice blue
 //   [ ] Landscape mode
 //   [ ] iPad support
 //   [ ] Widget for home screen
+//   [ ] Queue position persistence (resume exact track on relaunch)
+//   [ ] Background image persistence survives clean build (dev-only issue, works for App Store users)
+//   [ ] Graceful error messages (no subscription, no network)
 //
 // ============================================================
 // SHAKEDOWN CHECKLIST — Complete before App Store submission
