@@ -35,6 +35,8 @@
 //
 // v1.1+ — Future Enhancements (raise iOS minimum as needed)
 // ----------------------------------------------------------
+//   [ ] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
+//   [ ] WeatherKit local weather ticker (requires NSLocationWhenInUseUsageDescription)
 //   [ ] Dark/light automatic icon switching (iOS 18+)
 //   [ ] Additional color themes beyond ice blue
 //   [ ] Landscape mode
