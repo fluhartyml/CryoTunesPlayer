@@ -45,6 +45,7 @@
 //   [ ] Landscape mode
 //   [ ] iPad support
 //   [ ] Widget for home screen
+//   [ ] Easter egg (hidden interaction — tap title or idle screen)
 //   [ ] Queue position persistence (resume exact track on relaunch)
 //   [ ] Custom background image (z-ordering issue: image renders over UI — needs proper layer fix)
 //   [ ] Background image persistence survives clean build (dev-only issue, works for App Store users)
