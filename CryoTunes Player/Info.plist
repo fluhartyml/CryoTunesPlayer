@@ -6,6 +6,8 @@
 	<string>CryoTunes Player uses your location to display local weather conditions.</string>
 	<key>NSAppleMusicUsageDescription</key>
 	<string>CryoTunes Player needs access to Apple Music to stream stations and display album art.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>CryoTunes Player uses the microphone to identify songs with Shazam.</string>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>audio</string>

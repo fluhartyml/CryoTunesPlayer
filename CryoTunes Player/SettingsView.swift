@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AVKit
-import PhotosUI
 import MusicKit
 
 struct SettingsView: View {
@@ -16,7 +15,6 @@ struct SettingsView: View {
     @AppStorage("selectedSleepTimer") private var selectedSleepTimerRaw: Int = 0
     @State private var expandedCategories: Set<StationCategory> = []
     @State private var expandedDecades: Set<BillboardDecade> = []
-    @State private var selectedPhoto: PhotosPickerItem?
     @State private var asmrExpanded = false
     @State private var myMusicExpanded = false
     @State private var playlistsExpanded = false
@@ -43,9 +41,6 @@ struct SettingsView: View {
 
                     // AirPlay
                     airPlaySection
-
-                    // Background Image
-                    backgroundImageSection
 
                     // About
                     aboutSection
@@ -493,76 +488,6 @@ struct SettingsView: View {
                 .frame(height: 44)
         }
     }
-
-    // MARK: - Background Image
-
-    private var backgroundImageSection: some View {
-        sectionContainer(title: "Background Image") {
-            VStack(spacing: 12) {
-                if let data = playerManager.backgroundImageData,
-                   let uiImage = UIImage(data: data) {
-                    Image(uiImage: uiImage)
-                        .resizable()
-                        .aspectRatio(contentMode: .fill)
-                        .frame(height: 120)
-                        .clipShape(RoundedRectangle(cornerRadius: 4))
-                        .opacity(0.6)
-                }
-
-                HStack(spacing: 12) {
-                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
-                        Text(playerManager.backgroundImageData == nil ? "Choose Image" : "Change Image")
-                            .font(.system(size: 14, weight: .medium, design: .monospaced))
-                            .foregroundStyle(iceBlue)
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 10)
-                            .background(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .fill(iceDark)
-                            )
-                            .overlay(
-                                RoundedRectangle(cornerRadius: 4)
-                                    .strokeBorder(iceBorder.opacity(0.4), lineWidth: 1)
-                            )
-                    }
-                    .onChange(of: selectedPhoto) { _, newValue in
-                        Task {
-                            if let data = try? await newValue?.loadTransferable(type: Data.self) {
-                                playerManager.backgroundImageData = data
-                            }
-                        }
-                    }
-
-                    if playerManager.backgroundImageData != nil {
-                        Button {
-                            playerManager.backgroundImageData = nil
-                            selectedPhoto = nil
-                        } label: {
-                            Text("Remove")
-                                .font(.system(size: 14, weight: .medium, design: .monospaced))
-                                .foregroundStyle(.red.opacity(0.8))
-                                .frame(maxWidth: .infinity)
-                                .padding(.vertical, 10)
-                                .background(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .fill(iceDark)
-                                )
-                                .overlay(
-                                    RoundedRectangle(cornerRadius: 4)
-                                        .strokeBorder(.red.opacity(0.3), lineWidth: 1)
-                                )
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    // MARK: - Leader/Follower
-
-    // MARK: - Leader/Follower (v1.1 — requires CloudKit container setup on portal)
-    // followerSection removed from UI until iCloud.com.fluhartyml.Tally-Matrix-Clock
-    // container is registered for com.Tangerine.CryoTunesPlayer on developer.apple.com
 
     // MARK: - About
 

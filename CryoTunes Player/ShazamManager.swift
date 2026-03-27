@@ -8,6 +8,7 @@
 import Foundation
 import ShazamKit
 import AVFoundation
+import MusicKit
 
 @Observable
 class ShazamManager: NSObject, SHSessionDelegate {
@@ -16,6 +17,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
     var matchedTitle = ""
     var matchedArtist = ""
     var noMatch = false
+    var addedToLibrary = false
 
     private var session = SHSession()
     private var audioEngine = AVAudioEngine()
@@ -92,6 +94,20 @@ class ShazamManager: NSObject, SHSessionDelegate {
             self.matchedTitle = item.title ?? "Unknown"
             self.matchedArtist = item.artist ?? "Unknown"
             self.stopListening()
+            await self.addToLibrary(item)
+        }
+    }
+
+    func addToLibrary(_ item: SHMatchedMediaItem) async {
+        guard let appleMusicID = item.appleMusicID else { return }
+        do {
+            let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(appleMusicID))
+            let response = try await request.response()
+            guard let song = response.items.first else { return }
+            try await MusicLibrary.shared.add(song)
+            await MainActor.run { addedToLibrary = true }
+        } catch {
+            print("Add to library error: \(error)")
         }
     }
 

@@ -29,16 +29,10 @@ class MusicPlayerManager {
     var sleepTimerEnd: Date?
     var sleepTimerRemaining = ""
     var isAuthorized = false
+    var errorMessage = ""
 
-    // ⚠️ SCREENSHOT MODE: Set to true for App Store screenshots, false before submitting!
-    var screenshotMode = false
 
-    // Background image
-    var backgroundImageData: Data? {
-        didSet {
-            UserDefaults.standard.set(backgroundImageData, forKey: "backgroundImageData")
-        }
-    }
+
 
     private let player = ApplicationMusicPlayer.shared
     private var timerTask: Task<Void, Never>?
@@ -52,7 +46,6 @@ class MusicPlayerManager {
             currentStation = station
             nowPlayingTitle = UserDefaults.standard.string(forKey: "lastNowPlayingTitle") ?? station.rawValue
         }
-        backgroundImageData = UserDefaults.standard.data(forKey: "backgroundImageData")
         startNowPlayingObserver()
     }
 
@@ -116,7 +109,9 @@ class MusicPlayerManager {
                 isPlaying = true
             }
         } catch {
-            print("Playback error: \(error)")
+            await MainActor.run {
+                errorMessage = "Unable to play station. Check your connection."
+            }
         }
     }
 
@@ -242,7 +237,7 @@ class MusicPlayerManager {
                 libraryArtists = Array(artistResponse.items)
             }
         } catch {
-            print("Library load error: \(error)")
+            await MainActor.run { errorMessage = "Unable to load library. Check your connection." }
         }
     }
 
@@ -257,7 +252,7 @@ class MusicPlayerManager {
                 }
             }
         } catch {
-            print("Songs load error: \(error)")
+            await MainActor.run { errorMessage = "Unable to load songs. Check your connection." }
         }
     }
 
@@ -271,7 +266,7 @@ class MusicPlayerManager {
                 librarySongs = Array(response.items)
             }
         } catch {
-            print("Songs load error: \(error)")
+            await MainActor.run { errorMessage = "Unable to load songs. Check your connection." }
         }
     }
 
@@ -288,7 +283,7 @@ class MusicPlayerManager {
                 isPlaying = true
             }
         } catch {
-            print("Library playback error: \(error)")
+            await MainActor.run { errorMessage = "Unable to play. Check your connection." }
         }
     }
 
@@ -306,7 +301,7 @@ class MusicPlayerManager {
                 isPlaying = true
             }
         } catch {
-            print("Library playback error: \(error)")
+            await MainActor.run { errorMessage = "Unable to play. Check your connection." }
         }
     }
 
@@ -324,7 +319,7 @@ class MusicPlayerManager {
                 isPlaying = true
             }
         } catch {
-            print("Library playback error: \(error)")
+            await MainActor.run { errorMessage = "Unable to play. Check your connection." }
         }
     }
 
@@ -342,7 +337,7 @@ class MusicPlayerManager {
                 isPlaying = true
             }
         } catch {
-            print("Library playback error: \(error)")
+            await MainActor.run { errorMessage = "Unable to play. Check your connection." }
         }
     }
 

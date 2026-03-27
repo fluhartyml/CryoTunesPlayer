@@ -8,12 +8,10 @@
 import SwiftUI
 import MusicKit
 import ShazamKit
-import UIKit
 
 struct ContentView: View {
     @State private var playerManager = MusicPlayerManager()
     @State private var weatherManager = WeatherManager()
-    // @State private var leaderSync = LeaderFollowerSync() // v1.1: CloudKit follower sync
     @State private var showSettings = false
     @State private var shazamManager = ShazamManager()
 
@@ -76,6 +74,8 @@ struct ContentView: View {
                 shazamResultOverlay
             } else if shazamManager.noMatch {
                 shazamNoMatchOverlay
+            } else if !playerManager.errorMessage.isEmpty {
+                errorOverlay
             }
         }
         .sheet(isPresented: $showSettings) {
@@ -84,13 +84,6 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             weatherManager.requestWeather()
-            // v1.1: CloudKit follower sync callbacks
-            // leaderSync.onStationChanged = { station in
-            //     Task { await playerManager.play(station: station) }
-            // }
-            // leaderSync.onSleepTimerChanged = { minutes in
-            //     playerManager.startSleepTimer(minutes: minutes)
-            // }
         }
     }
 
@@ -98,27 +91,15 @@ struct ContentView: View {
 
     @ViewBuilder
     private var backgroundLayer: some View {
-        ZStack {
-            // Base gradient (always present)
-            LinearGradient(
-                colors: [
-                    Color(red: 0.05, green: 0.08, blue: 0.15),
-                    Color(red: 0.1, green: 0.15, blue: 0.25),
-                    Color(red: 0.05, green: 0.08, blue: 0.15)
-                ],
-                startPoint: .top,
-                endPoint: .bottom
-            )
-
-            // User background image (behind everything, dimmed)
-            if let data = playerManager.backgroundImageData,
-               let uiImage = UIImage(data: data) {
-                Image(uiImage: uiImage)
-                    .resizable()
-                    .aspectRatio(contentMode: .fill)
-                    .opacity(0.3)
-            }
-        }
+        LinearGradient(
+            colors: [
+                Color(red: 0.05, green: 0.08, blue: 0.15),
+                Color(red: 0.1, green: 0.15, blue: 0.25),
+                Color(red: 0.05, green: 0.08, blue: 0.15)
+            ],
+            startPoint: .top,
+            endPoint: .bottom
+        )
         .ignoresSafeArea()
     }
 
@@ -142,18 +123,20 @@ struct ContentView: View {
                 Task { await shazamManager.startListening() }
             } label: {
                 Image(systemName: shazamManager.isListening ? "waveform" : "shazam.logo.fill")
-                    .font(.system(size: 20))
+                    .font(.system(size: 28))
                     .foregroundStyle(shazamManager.isListening ? iceGlow : iceBlue)
                     .symbolEffect(.pulse, isActive: shazamManager.isListening)
+                    .frame(width: 44, height: 44)
             }
-            .padding(.trailing, 12)
+            .padding(.trailing, 8)
 
             Button {
                 showSettings = true
             } label: {
                 Image(systemName: "gearshape.fill")
-                    .font(.system(size: 20))
+                    .font(.system(size: 28))
                     .foregroundStyle(iceBlue)
+                    .frame(width: 44, height: 44)
             }
         }
     }
@@ -177,13 +160,7 @@ struct ContentView: View {
                         )
                 )
 
-            if playerManager.screenshotMode {
-                Image("PlaceholderAlbumArt")
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-                    .clipShape(RoundedRectangle(cornerRadius: 6))
-                    .padding(4)
-            } else if let url = playerManager.currentArtworkURL {
+            if let url = playerManager.currentArtworkURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
@@ -360,6 +337,13 @@ struct ContentView: View {
                 .font(.system(size: 14, design: .monospaced))
                 .foregroundStyle(iceAccent.opacity(0.7))
                 .lineLimit(1)
+
+            if shazamManager.addedToLibrary {
+                Text("Added to Library")
+                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .foregroundStyle(.green.opacity(0.8))
+                    .padding(.top, 4)
+            }
         }
         .padding(24)
         .background(
@@ -374,6 +358,7 @@ struct ContentView: View {
         .onTapGesture {
             shazamManager.matchedTitle = ""
             shazamManager.matchedArtist = ""
+            shazamManager.addedToLibrary = false
         }
         .transition(.opacity)
     }
@@ -399,6 +384,32 @@ struct ContentView: View {
         )
         .onTapGesture {
             shazamManager.noMatch = false
+        }
+        .transition(.opacity)
+    }
+
+    private var errorOverlay: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "wifi.exclamationmark")
+                .font(.system(size: 32))
+                .foregroundStyle(.red.opacity(0.7))
+
+            Text(playerManager.errorMessage)
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundStyle(iceBorder)
+                .multilineTextAlignment(.center)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(iceDark.opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(.red.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .onTapGesture {
+            playerManager.errorMessage = ""
         }
         .transition(.opacity)
     }

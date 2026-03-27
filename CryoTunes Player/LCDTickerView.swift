@@ -112,27 +112,21 @@ struct LCDTickerView: View {
                         .background(
                             GeometryReader { textGeo in
                                 Color.clear
-                                    .onAppear { textWidth = textGeo.size.width }
-                                    .onChange(of: tickerText) { _, _ in
-                                        textWidth = textGeo.size.width
-                                    }
+                                    .preference(key: TextWidthKey.self, value: textGeo.size.width)
                             }
                         )
                 )
         }
         .frame(height: 30)
-        .onAppear {
-            // Trigger initial measurement
-            DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-                textWidth = textWidth // force re-eval
-            }
+        .onPreferenceChange(TextWidthKey.self) { value in
+            textWidth = value
         }
-        .background(
-            GeometryReader { geo in
-                Color.clear.onAppear {
-                    containerWidth = geo.size.width - 16
-                }
-            }
-        )
+    }
+}
+
+private struct TextWidthKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
+        value = max(value, nextValue())
     }
 }
