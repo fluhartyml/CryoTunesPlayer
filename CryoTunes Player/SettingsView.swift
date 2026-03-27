@@ -499,7 +499,7 @@ struct SettingsView: View {
                         .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Spacer()
-                    Text("v2.0")
+                    Text("v2.1")
                         .font(.system(size: 13, design: .monospaced))
                         .foregroundStyle(iceBorder)
                 }
@@ -514,6 +514,19 @@ struct SettingsView: View {
                         .font(.system(size: 11, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.5))
                     Spacer()
+                }
+                Divider().overlay(iceBorder.opacity(0.2))
+                Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "apple.logo")
+                            .font(.system(size: 11))
+                        Text("Weather")
+                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        Spacer()
+                        Image(systemName: "arrow.up.right.square")
+                            .font(.system(size: 10))
+                    }
+                    .foregroundStyle(iceBorder.opacity(0.5))
                 }
             }
         }
