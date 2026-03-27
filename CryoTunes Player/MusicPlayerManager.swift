@@ -30,6 +30,16 @@ class MusicPlayerManager {
     var sleepTimerRemaining = ""
     var isAuthorized = false
 
+    // ⚠️ SCREENSHOT MODE: Set to true for App Store screenshots, false before submitting!
+    var screenshotMode = false
+
+    // Background image
+    var backgroundImageData: Data? {
+        didSet {
+            UserDefaults.standard.set(backgroundImageData, forKey: "backgroundImageData")
+        }
+    }
+
     private let player = ApplicationMusicPlayer.shared
     private var timerTask: Task<Void, Never>?
     private var nowPlayingTask: Task<Void, Never>?
@@ -42,6 +52,7 @@ class MusicPlayerManager {
             currentStation = station
             nowPlayingTitle = UserDefaults.standard.string(forKey: "lastNowPlayingTitle") ?? station.rawValue
         }
+        backgroundImageData = UserDefaults.standard.data(forKey: "backgroundImageData")
         startNowPlayingObserver()
     }
 
@@ -198,6 +209,140 @@ class MusicPlayerManager {
                 self.isPlaying = self.player.state.playbackStatus == .playing
                 try? await Task.sleep(for: .seconds(1))
             }
+        }
+    }
+
+    // MARK: - Library Playback
+
+    var libraryPlaylists: [Playlist] = []
+    var libraryAlbums: [Album] = []
+    var libraryArtists: [Artist] = []
+    var librarySongs: [Song] = []
+
+    func loadLibrary() async {
+        let authorized = await requestAuthorization()
+        guard authorized else { return }
+
+        do {
+            var playlistRequest = MusicLibraryRequest<Playlist>()
+            playlistRequest.sort(by: \.name, ascending: true)
+            let playlistResponse = try await playlistRequest.response()
+
+            var albumRequest = MusicLibraryRequest<Album>()
+            albumRequest.sort(by: \.title, ascending: true)
+            let albumResponse = try await albumRequest.response()
+
+            var artistRequest = MusicLibraryRequest<Artist>()
+            artistRequest.sort(by: \.name, ascending: true)
+            let artistResponse = try await artistRequest.response()
+
+            await MainActor.run {
+                libraryPlaylists = Array(playlistResponse.items)
+                libraryAlbums = Array(albumResponse.items)
+                libraryArtists = Array(artistResponse.items)
+            }
+        } catch {
+            print("Library load error: \(error)")
+        }
+    }
+
+    func loadSongs(for album: Album) async {
+        do {
+            let detailedAlbum = try await album.with([.tracks])
+            let tracks = detailedAlbum.tracks ?? []
+            await MainActor.run {
+                librarySongs = tracks.compactMap { track in
+                    if case let .song(song) = track { return song }
+                    return nil
+                }
+            }
+        } catch {
+            print("Songs load error: \(error)")
+        }
+    }
+
+    func loadSongs(for artist: Artist) async {
+        do {
+            var request = MusicLibraryRequest<Song>()
+            request.filter(matching: \.artistName, equalTo: artist.name)
+            request.sort(by: \.title, ascending: true)
+            let response = try await request.response()
+            await MainActor.run {
+                librarySongs = Array(response.items)
+            }
+        } catch {
+            print("Songs load error: \(error)")
+        }
+    }
+
+    func playLibraryItem(_ item: any MusicCatalogSearchable & PlayableMusicItem) async {
+        let authorized = await requestAuthorization()
+        guard authorized else { return }
+
+        do {
+            player.queue = [item]
+            try await player.prepareToPlay()
+            try await player.play()
+            await MainActor.run {
+                currentStation = .none
+                isPlaying = true
+            }
+        } catch {
+            print("Library playback error: \(error)")
+        }
+    }
+
+    func playPlaylist(_ playlist: Playlist) async {
+        let authorized = await requestAuthorization()
+        guard authorized else { return }
+
+        do {
+            player.queue = [playlist]
+            try await player.prepareToPlay()
+            try await player.play()
+            await MainActor.run {
+                currentStation = .none
+                nowPlayingTitle = playlist.name
+                isPlaying = true
+            }
+        } catch {
+            print("Library playback error: \(error)")
+        }
+    }
+
+    func playAlbum(_ album: Album) async {
+        let authorized = await requestAuthorization()
+        guard authorized else { return }
+
+        do {
+            player.queue = [album]
+            try await player.prepareToPlay()
+            try await player.play()
+            await MainActor.run {
+                currentStation = .none
+                nowPlayingTitle = album.title
+                isPlaying = true
+            }
+        } catch {
+            print("Library playback error: \(error)")
+        }
+    }
+
+    func playSong(_ song: Song) async {
+        let authorized = await requestAuthorization()
+        guard authorized else { return }
+
+        do {
+            player.queue = [song]
+            try await player.prepareToPlay()
+            try await player.play()
+            await MainActor.run {
+                currentStation = .none
+                nowPlayingTitle = song.title
+                isPlaying = true
+            }
+        } catch {
+            print("Library playback error: \(error)")
         }
     }
 

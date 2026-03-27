@@ -7,6 +7,8 @@
 
 import SwiftUI
 import AVKit
+import PhotosUI
+import MusicKit
 
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlayerManager
@@ -14,6 +16,15 @@ struct SettingsView: View {
     @AppStorage("selectedSleepTimer") private var selectedSleepTimerRaw: Int = 0
     @State private var expandedCategories: Set<StationCategory> = []
     @State private var expandedDecades: Set<BillboardDecade> = []
+    @State private var selectedPhoto: PhotosPickerItem?
+    @State private var asmrExpanded = false
+    @State private var myMusicExpanded = false
+    @State private var playlistsExpanded = false
+    @State private var albumsExpanded = false
+    @State private var artistsExpanded = false
+    @State private var selectedArtist: Artist?
+    @State private var selectedAlbum: Album?
+    @State private var libraryLoaded = false
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
     private let iceDark = Color(red: 0.12, green: 0.18, blue: 0.28)
@@ -33,7 +44,8 @@ struct SettingsView: View {
                     // AirPlay
                     airPlaySection
 
-                    // Background Image deferred to v1.1
+                    // Background Image
+                    backgroundImageSection
 
                     // About
                     aboutSection
@@ -66,6 +78,9 @@ struct SettingsView: View {
                         stationCategoryPicker(category: category)
                     }
                 }
+
+                // My Music (library)
+                myMusicPicker
             }
         }
     }
@@ -108,6 +123,50 @@ struct SettingsView: View {
             if expandedCategories.contains(category) {
                 ForEach(MusicStationOption.stations(for: category), id: \.self) { station in
                     stationRow(station: station)
+                }
+
+                // ASMR nested reveal (only in Sound Machine)
+                if category == .nature {
+                    asmrSubSection
+                }
+            }
+        }
+    }
+
+    private var asmrSubSection: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    asmrExpanded.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: asmrExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 11))
+                        .foregroundStyle(iceBorder.opacity(0.7))
+                        .frame(width: 20)
+
+                    Text("ASMR")
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundStyle(iceAccent)
+
+                    Spacer()
+
+                    if !asmrExpanded &&
+                        MusicStationOption.asmrStations.contains(playerManager.currentStation) {
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 11))
+                            .foregroundStyle(iceAccent)
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.leading, 28)
+                .padding(.trailing, 8)
+            }
+
+            if asmrExpanded {
+                ForEach(MusicStationOption.asmrStations, id: \.self) { station in
+                    stationRow(station: station, indent: true)
                 }
             }
         }
@@ -226,6 +285,177 @@ struct SettingsView: View {
         }
     }
 
+    // MARK: - My Music
+
+    private var myMusicPicker: some View {
+        VStack(spacing: 0) {
+            // My Music header
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    myMusicExpanded.toggle()
+                    if myMusicExpanded && !libraryLoaded {
+                        libraryLoaded = true
+                        Task { await playerManager.loadLibrary() }
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: myMusicExpanded ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 12))
+                        .foregroundStyle(iceBorder)
+                        .frame(width: 20)
+
+                    Image(systemName: "music.note.house.fill")
+                        .font(.system(size: 14))
+                        .foregroundStyle(iceAccent)
+
+                    Text("My Music")
+                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .foregroundStyle(iceBlue)
+
+                    Spacer()
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 8)
+            }
+
+            if myMusicExpanded {
+                // Playlists
+                myMusicSubSection(
+                    title: "Playlists",
+                    count: playerManager.libraryPlaylists.count,
+                    isExpanded: $playlistsExpanded
+                ) {
+                    ForEach(playerManager.libraryPlaylists, id: \.id) { playlist in
+                        Button {
+                            Task { await playerManager.playPlaylist(playlist) }
+                        } label: {
+                            HStack {
+                                Image(systemName: "music.note.list")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(iceBorder.opacity(0.5))
+
+                                Text(playlist.name)
+                                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                                    .foregroundStyle(iceBlue.opacity(0.7))
+                                    .lineLimit(1)
+
+                                Spacer()
+                            }
+                            .padding(.vertical, 6)
+                            .padding(.leading, 48)
+                            .padding(.trailing, 8)
+                        }
+                    }
+                }
+
+                // Albums
+                myMusicSubSection(
+                    title: "Albums",
+                    count: playerManager.libraryAlbums.count,
+                    isExpanded: $albumsExpanded
+                ) {
+                    ForEach(playerManager.libraryAlbums, id: \.id) { album in
+                        Button {
+                            Task { await playerManager.playAlbum(album) }
+                        } label: {
+                            HStack {
+                                Image(systemName: "square.stack")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(iceBorder.opacity(0.5))
+
+                                VStack(alignment: .leading, spacing: 1) {
+                                    Text(album.title)
+                                        .font(.system(size: 14, weight: .regular, design: .monospaced))
+                                        .foregroundStyle(iceBlue.opacity(0.7))
+                                        .lineLimit(1)
+                                    Text(album.artistName)
+                                        .font(.system(size: 11, design: .monospaced))
+                                        .foregroundStyle(iceBorder.opacity(0.5))
+                                        .lineLimit(1)
+                                }
+
+                                Spacer()
+                            }
+                            .padding(.vertical, 6)
+                            .padding(.leading, 48)
+                            .padding(.trailing, 8)
+                        }
+                    }
+                }
+
+                // Artists
+                myMusicSubSection(
+                    title: "Artists",
+                    count: playerManager.libraryArtists.count,
+                    isExpanded: $artistsExpanded
+                ) {
+                    ForEach(playerManager.libraryArtists, id: \.id) { artist in
+                        Button {
+                            Task { await playerManager.loadSongs(for: artist) }
+                            selectedArtist = artist
+                        } label: {
+                            HStack {
+                                Image(systemName: "person.fill")
+                                    .font(.system(size: 12))
+                                    .foregroundStyle(iceBorder.opacity(0.5))
+
+                                Text(artist.name)
+                                    .font(.system(size: 14, weight: .regular, design: .monospaced))
+                                    .foregroundStyle(iceBlue.opacity(0.7))
+                                    .lineLimit(1)
+
+                                Spacer()
+                            }
+                            .padding(.vertical, 6)
+                            .padding(.leading, 48)
+                            .padding(.trailing, 8)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private func myMusicSubSection<Content: View>(
+        title: String,
+        count: Int,
+        isExpanded: Binding<Bool>,
+        @ViewBuilder content: () -> Content
+    ) -> some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    isExpanded.wrappedValue.toggle()
+                }
+            } label: {
+                HStack {
+                    Image(systemName: isExpanded.wrappedValue ? "chevron.down" : "chevron.right")
+                        .font(.system(size: 11))
+                        .foregroundStyle(iceBorder.opacity(0.7))
+                        .frame(width: 20)
+
+                    Text(title)
+                        .font(.system(size: 14, weight: .medium, design: .monospaced))
+                        .foregroundStyle(iceAccent)
+
+                    Spacer()
+
+                    Text("\(count)")
+                        .font(.system(size: 12, design: .monospaced))
+                        .foregroundStyle(iceBorder.opacity(0.5))
+                }
+                .padding(.vertical, 8)
+                .padding(.leading, 28)
+                .padding(.trailing, 8)
+            }
+
+            if isExpanded.wrappedValue {
+                content()
+            }
+        }
+    }
+
     // MARK: - Sleep Timer
 
     private var sleepTimerSection: some View {
@@ -264,7 +494,69 @@ struct SettingsView: View {
         }
     }
 
-    // MARK: - Background Image (v1.1)
+    // MARK: - Background Image
+
+    private var backgroundImageSection: some View {
+        sectionContainer(title: "Background Image") {
+            VStack(spacing: 12) {
+                if let data = playerManager.backgroundImageData,
+                   let uiImage = UIImage(data: data) {
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .aspectRatio(contentMode: .fill)
+                        .frame(height: 120)
+                        .clipShape(RoundedRectangle(cornerRadius: 4))
+                        .opacity(0.6)
+                }
+
+                HStack(spacing: 12) {
+                    PhotosPicker(selection: $selectedPhoto, matching: .images) {
+                        Text(playerManager.backgroundImageData == nil ? "Choose Image" : "Change Image")
+                            .font(.system(size: 14, weight: .medium, design: .monospaced))
+                            .foregroundStyle(iceBlue)
+                            .frame(maxWidth: .infinity)
+                            .padding(.vertical, 10)
+                            .background(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .fill(iceDark)
+                            )
+                            .overlay(
+                                RoundedRectangle(cornerRadius: 4)
+                                    .strokeBorder(iceBorder.opacity(0.4), lineWidth: 1)
+                            )
+                    }
+                    .onChange(of: selectedPhoto) { _, newValue in
+                        Task {
+                            if let data = try? await newValue?.loadTransferable(type: Data.self) {
+                                playerManager.backgroundImageData = data
+                            }
+                        }
+                    }
+
+                    if playerManager.backgroundImageData != nil {
+                        Button {
+                            playerManager.backgroundImageData = nil
+                            selectedPhoto = nil
+                        } label: {
+                            Text("Remove")
+                                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                                .foregroundStyle(.red.opacity(0.8))
+                                .frame(maxWidth: .infinity)
+                                .padding(.vertical, 10)
+                                .background(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(iceDark)
+                                )
+                                .overlay(
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .strokeBorder(.red.opacity(0.3), lineWidth: 1)
+                                )
+                        }
+                    }
+                }
+            }
+        }
+    }
 
     // MARK: - Leader/Follower
 
@@ -282,7 +574,7 @@ struct SettingsView: View {
                         .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Spacer()
-                    Text("v1.0")
+                    Text("v2.0")
                         .font(.system(size: 13, design: .monospaced))
                         .foregroundStyle(iceBorder)
                 }

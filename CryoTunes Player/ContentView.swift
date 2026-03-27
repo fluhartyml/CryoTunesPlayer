@@ -7,13 +7,15 @@
 
 import SwiftUI
 import MusicKit
+import ShazamKit
+import UIKit
 
 struct ContentView: View {
     @State private var playerManager = MusicPlayerManager()
     @State private var weatherManager = WeatherManager()
     // @State private var leaderSync = LeaderFollowerSync() // v1.1: CloudKit follower sync
     @State private var showSettings = false
-    // Background image deferred to v1.1
+    @State private var shazamManager = ShazamManager()
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -69,6 +71,13 @@ struct ContentView: View {
             }
             .padding(.bottom, 20)
         }
+        .overlay(alignment: .center) {
+            if !shazamManager.matchedTitle.isEmpty {
+                shazamResultOverlay
+            } else if shazamManager.noMatch {
+                shazamNoMatchOverlay
+            }
+        }
         .sheet(isPresented: $showSettings) {
             SettingsView(playerManager: playerManager)
         }
@@ -89,15 +98,27 @@ struct ContentView: View {
 
     @ViewBuilder
     private var backgroundLayer: some View {
-        LinearGradient(
-            colors: [
-                Color(red: 0.05, green: 0.08, blue: 0.15),
-                Color(red: 0.1, green: 0.15, blue: 0.25),
-                Color(red: 0.05, green: 0.08, blue: 0.15)
-            ],
-            startPoint: .top,
-            endPoint: .bottom
-        )
+        ZStack {
+            // Base gradient (always present)
+            LinearGradient(
+                colors: [
+                    Color(red: 0.05, green: 0.08, blue: 0.15),
+                    Color(red: 0.1, green: 0.15, blue: 0.25),
+                    Color(red: 0.05, green: 0.08, blue: 0.15)
+                ],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+
+            // User background image (behind everything, dimmed)
+            if let data = playerManager.backgroundImageData,
+               let uiImage = UIImage(data: data) {
+                Image(uiImage: uiImage)
+                    .resizable()
+                    .aspectRatio(contentMode: .fill)
+                    .opacity(0.3)
+            }
+        }
         .ignoresSafeArea()
     }
 
@@ -115,6 +136,17 @@ struct ContentView: View {
             }
 
             Spacer()
+
+            // Shazam button
+            Button {
+                Task { await shazamManager.startListening() }
+            } label: {
+                Image(systemName: shazamManager.isListening ? "waveform" : "shazam.logo.fill")
+                    .font(.system(size: 20))
+                    .foregroundStyle(shazamManager.isListening ? iceGlow : iceBlue)
+                    .symbolEffect(.pulse, isActive: shazamManager.isListening)
+            }
+            .padding(.trailing, 12)
 
             Button {
                 showSettings = true
@@ -145,7 +177,13 @@ struct ContentView: View {
                         )
                 )
 
-            if let url = playerManager.currentArtworkURL {
+            if playerManager.screenshotMode {
+                Image("PlaceholderAlbumArt")
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .clipShape(RoundedRectangle(cornerRadius: 6))
+                    .padding(4)
+            } else if let url = playerManager.currentArtworkURL {
                 AsyncImage(url: url) { phase in
                     switch phase {
                     case .success(let image):
@@ -303,6 +341,66 @@ struct ContentView: View {
                     .foregroundStyle(iceBorder.opacity(0.4))
             }
         }
+    }
+    // MARK: - Shazam Overlays
+
+    private var shazamResultOverlay: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "shazam.logo.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(iceAccent)
+
+            Text(shazamManager.matchedTitle)
+                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                .foregroundStyle(iceBlue)
+                .lineLimit(2)
+                .multilineTextAlignment(.center)
+
+            Text(shazamManager.matchedArtist)
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundStyle(iceAccent.opacity(0.7))
+                .lineLimit(1)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(iceDark.opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(iceBorder.opacity(0.5), lineWidth: 1)
+                )
+        )
+        .shadow(color: iceGlow.opacity(0.2), radius: 10)
+        .onTapGesture {
+            shazamManager.matchedTitle = ""
+            shazamManager.matchedArtist = ""
+        }
+        .transition(.opacity)
+    }
+
+    private var shazamNoMatchOverlay: some View {
+        VStack(spacing: 8) {
+            Image(systemName: "shazam.logo.fill")
+                .font(.system(size: 32))
+                .foregroundStyle(iceBorder.opacity(0.5))
+
+            Text("No Match Found")
+                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .foregroundStyle(iceBorder)
+        }
+        .padding(24)
+        .background(
+            RoundedRectangle(cornerRadius: 12)
+                .fill(iceDark.opacity(0.95))
+                .overlay(
+                    RoundedRectangle(cornerRadius: 12)
+                        .strokeBorder(iceBorder.opacity(0.3), lineWidth: 1)
+                )
+        )
+        .onTapGesture {
+            shazamManager.noMatch = false
+        }
+        .transition(.opacity)
     }
 }
 

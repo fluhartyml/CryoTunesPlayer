@@ -10,7 +10,7 @@ import Foundation
 enum StationCategory: String, CaseIterable {
     case music = "Music"
     case billboard = "Popular Hits"
-    case nature = "Nature Sounds"
+    case nature = "Sound Machine"
     case focus = "Focus"
 }
 
@@ -154,6 +154,12 @@ enum MusicStationOption: String, CaseIterable {
     case tibetanBowls4Hr = "Singing Bowls 4 Hours"
     case rainSoundsForSleep = "Rain Sounds for Sleep"
 
+    // ASMR (nested under Sound Machine)
+    case oscillatingFan = "Oscillating Fan"
+    case vacuumCleaner = "Vacuum Cleaner"
+    case washingMachine = "Washing Machine"
+    case hairDryer = "Hair Dryer"
+
     // Focus
     case pureFocus = "Pure Focus"
     case focusFrequency = "Focus Frequency"
@@ -186,7 +192,8 @@ enum MusicStationOption: String, CaseIterable {
             return .billboard
         case .infiniteRain, .forestSounds, .babblingBrook, .tropicalThunderstorm,
              .oceanWavesThunder, .waterfallAndRain, .tibetanMonksOm,
-             .tibetanSingingBowls, .tibetanBowls4Hr, .rainSoundsForSleep:
+             .tibetanSingingBowls, .tibetanBowls4Hr, .rainSoundsForSleep,
+             .oscillatingFan, .vacuumCleaner, .washingMachine, .hairDryer:
             return .nature
         case .pureFocus, .focusFrequency, .calmBreathing, .positiveShift, .lightWork:
             return .focus
@@ -287,7 +294,11 @@ enum MusicStationOption: String, CaseIterable {
         case .tibetanMonksOm: return "tibetan monks chanting om for deep meditation"
         case .tibetanSingingBowls: return "tibetan singing bowls satiro"
         case .tibetanBowls4Hr: return "tibetan singing bowls 4 hours for relaxation"
-        case .rainSoundsForSleep: return "rain sounds for sleep silent chills"
+        case .rainSoundsForSleep: return "rain sounds for sleep"
+        case .oscillatingFan: return "oscillating fan white noise"
+        case .vacuumCleaner: return "vacuum cleaner white noise sleep"
+        case .washingMachine: return "washing machine sound"
+        case .hairDryer: return "hair dryer white noise sleep"
         case .pureFocus: return "pure focus"
         case .focusFrequency: return "focus frequency increase concentration memory"
         case .calmBreathing: return "deep meditation binaural beats vol 9 lightseeds"
@@ -321,7 +332,8 @@ enum MusicStationOption: String, CaseIterable {
             return .playlistFirst
         case .babblingBrook, .tropicalThunderstorm, .oceanWavesThunder,
              .waterfallAndRain, .tibetanMonksOm, .tibetanSingingBowls,
-             .tibetanBowls4Hr, .focusFrequency, .calmBreathing, .positiveShift, .lightWork:
+             .tibetanBowls4Hr, .oscillatingFan, .vacuumCleaner, .washingMachine, .hairDryer,
+             .focusFrequency, .calmBreathing, .positiveShift, .lightWork:
             return .albumFirst
         default:
             return .stationFirst
@@ -349,12 +361,25 @@ enum MusicStationOption: String, CaseIterable {
         }
     }
 
+    var isASMR: Bool {
+        switch self {
+        case .oscillatingFan, .vacuumCleaner, .washingMachine, .hairDryer:
+            return true
+        default:
+            return false
+        }
+    }
+
     var shouldRepeat: Bool {
         category == .nature || category == .focus
     }
 
     static func stations(for category: StationCategory) -> [MusicStationOption] {
-        allCases.filter { $0.category == category && $0 != .none }
+        allCases.filter { $0.category == category && $0 != .none && !$0.isASMR }
+    }
+
+    static var asmrStations: [MusicStationOption] {
+        allCases.filter { $0.isASMR }
     }
 
     static func stations(for decade: BillboardDecade) -> [MusicStationOption] {
