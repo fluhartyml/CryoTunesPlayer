@@ -251,31 +251,14 @@ struct ContentView: View {
     // MARK: - Transport Controls
 
     private var transportControls: some View {
-        HStack(spacing: 32) {
-            // Skip back
-            Button { playerManager.skipBack() } label: {
-                retroButton(icon: "backward.fill", size: 24)
-            }
-
-            // Play/Pause
-            Button { playerManager.togglePlayPause() } label: {
-                retroButton(
-                    icon: playerManager.isPlaying ? "pause.fill" : "play.fill",
-                    size: 32,
-                    prominent: true
-                )
-            }
-
-            // Skip forward
-            Button { playerManager.skipForward() } label: {
-                retroButton(icon: "forward.fill", size: 24)
-            }
-
-            // Stop
-            Button { playerManager.stop() } label: {
-                retroButton(icon: "stop.fill", size: 22)
-            }
-        }
+        CryoTransportControls(
+            player: playerManager,
+            tint: iceBlue,
+            accent: iceAccent,
+            dark: iceDark,
+            border: iceBorder,
+            glow: iceGlow
+        )
     }
 
     private func retroButton(icon: String, size: CGFloat, prominent: Bool = false) -> some View {
