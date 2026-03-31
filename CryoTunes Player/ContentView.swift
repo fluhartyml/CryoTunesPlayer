@@ -161,29 +161,22 @@ struct ContentView: View {
                         )
                 )
 
-            // TEMP: Static placeholder for App Store screenshots
-            Image(uiImage: UIImage(named: "pop-stars-placeholder.jpg") ?? UIImage())
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .padding(4)
-            // ORIGINAL (restore after screenshots):
-            // if let url = playerManager.currentArtworkURL {
-            //     AsyncImage(url: url) { phase in
-            //         switch phase {
-            //         case .success(let image):
-            //             image
-            //                 .resizable()
-            //                 .aspectRatio(contentMode: .fit)
-            //                 .clipShape(RoundedRectangle(cornerRadius: 6))
-            //                 .padding(4)
-            //         default:
-            //             artPlaceholder
-            //         }
-            //     }
-            // } else {
-            //     artPlaceholder
-            // }
+            if let url = playerManager.currentArtworkURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .padding(4)
+                    default:
+                        artPlaceholder
+                    }
+                }
+            } else {
+                artPlaceholder
+            }
         }
         .aspectRatio(1, contentMode: .fit)
     }
