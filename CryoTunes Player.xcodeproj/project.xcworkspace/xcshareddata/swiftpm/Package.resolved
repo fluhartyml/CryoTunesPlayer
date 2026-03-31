@@ -1,0 +1,15 @@
+{
+  "originHash" : "809e3bec898ea9c621b9bda18cb1738c99e028fdf7d2d9b90b0ee8811b58e927",
+  "pins" : [
+    {
+      "identity" : "cryokit",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/fluhartyml/CryoKit",
+      "state" : {
+        "branch" : "main",
+        "revision" : "e01a3745a16dfc49fd492c51b35f68b657eceab7"
+      }
+    }
+  ],
+  "version" : 3
+}

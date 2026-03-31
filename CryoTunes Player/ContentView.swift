@@ -8,10 +8,11 @@
 import SwiftUI
 import MusicKit
 import ShazamKit
+import CryoKit
 
 struct ContentView: View {
-    @State private var playerManager = MusicPlayerManager()
-    @State private var weatherManager = WeatherManager()
+    @State private var playerManager = MusicPlaybackManager()
+    @State private var weatherManager = CryoWeatherManager()
     @State private var showSettings = false
     @State private var shazamManager = ShazamManager()
 

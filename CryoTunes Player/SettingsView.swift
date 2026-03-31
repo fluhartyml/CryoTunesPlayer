@@ -8,9 +8,10 @@
 import SwiftUI
 import AVKit
 import MusicKit
+import CryoKit
 
 struct SettingsView: View {
-    @Bindable var playerManager: MusicPlayerManager
+    @Bindable var playerManager: MusicPlaybackManager
     @Environment(\.dismiss) private var dismiss
     @AppStorage("selectedSleepTimer") private var selectedSleepTimerRaw: Int = 0
     @State private var expandedCategories: Set<StationCategory> = []

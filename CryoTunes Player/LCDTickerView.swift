@@ -6,9 +6,10 @@
 //
 
 import SwiftUI
+import CryoKit
 
 struct LCDTickerView: View {
-    let weatherManager: WeatherManager
+    let weatherManager: CryoWeatherManager
 
     @State private var textWidth: CGFloat = 0
     @State private var containerWidth: CGFloat = 0
@@ -70,36 +71,50 @@ struct LCDTickerView: View {
                         .padding(3)
                 )
 
-            // Scrolling text
-            TimelineView(.animation) { context in
-                GeometryReader { geo in
-                    let cw = geo.size.width - 16
-                    let text = tickerText
-                    let needsScroll = textWidth > cw && textWidth > 0 && cw > 0
+            // Scrolling text + attribution
+            VStack(spacing: 1) {
+                TimelineView(.animation) { context in
+                    GeometryReader { geo in
+                        let cw = geo.size.width - 16
+                        let text = tickerText
+                        let needsScroll = textWidth > cw && textWidth > 0 && cw > 0
 
-                    if needsScroll {
-                        let totalDistance = textWidth + cw
-                        let cycleDuration = totalDistance / speed
-                        let elapsed = context.date.timeIntervalSinceReferenceDate
-                        let offset = elapsed.truncatingRemainder(dividingBy: cycleDuration) * speed
+                        if needsScroll {
+                            let totalDistance = textWidth + cw
+                            let cycleDuration = totalDistance / speed
+                            let elapsed = context.date.timeIntervalSinceReferenceDate
+                            let offset = elapsed.truncatingRemainder(dividingBy: cycleDuration) * speed
 
-                        Text(text)
-                            .font(tickerFont)
-                            .foregroundStyle(lcdText)
-                            .fixedSize()
-                            .offset(x: cw - offset)
-                            .frame(width: cw, alignment: .leading)
-                            .clipped()
-                    } else {
-                        Text(text)
-                            .font(tickerFont)
-                            .foregroundStyle(lcdText)
-                            .fixedSize()
-                            .frame(width: cw)
+                            Text(text)
+                                .font(tickerFont)
+                                .foregroundStyle(lcdText)
+                                .fixedSize()
+                                .offset(x: cw - offset)
+                                .frame(width: cw, alignment: .leading)
+                                .clipped()
+                        } else {
+                            Text(text)
+                                .font(tickerFont)
+                                .foregroundStyle(lcdText)
+                                .fixedSize()
+                                .frame(width: cw)
+                        }
                     }
+                    .padding(.horizontal, 8)
                 }
-                .padding(.horizontal, 8)
+                .frame(height: 18)
+
+                // Apple Weather attribution
+                HStack(spacing: 3) {
+                    Image(systemName: "apple.logo")
+                        .font(.system(size: 7))
+                    Text("Weather provided by Apple WeatherKit")
+                        .font(.system(size: 7, design: .monospaced))
+                }
+                .foregroundStyle(lcdText.opacity(0.5))
+                .frame(height: 10)
             }
+            .padding(.vertical, 2)
 
             // Hidden text for measurement — must not affect parent layout
             Color.clear
@@ -117,7 +132,7 @@ struct LCDTickerView: View {
                         )
                 )
         }
-        .frame(height: 30)
+        .frame(height: 40)
         .onPreferenceChange(TextWidthKey.self) { value in
             textWidth = value
         }
