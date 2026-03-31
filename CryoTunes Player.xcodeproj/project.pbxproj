@@ -6,6 +6,10 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		AA000001CRYOKIT00000001 /* CryoKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002CRYOKIT00000001 /* CryoKit */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		C0E7AD5C2F7574E2008A8596 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -59,10 +63,6 @@
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
-
-/* Begin PBXBuildFile section */
-		AA000001CRYOKIT00000001 /* CryoKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002CRYOKIT00000001 /* CryoKit */; };
-/* End PBXBuildFile section */
 
 /* Begin PBXFrameworksBuildPhase section */
 		C0E7AD472F7574E1008A8596 /* Frameworks */ = {
@@ -214,10 +214,10 @@
 			);
 			mainGroup = C0E7AD412F7574E1008A8596;
 			minimizedProjectReferenceProxies = 1;
-			preferredProjectObjectVersion = 77;
 			packageReferences = (
 				AA000003CRYOKIT00000001 /* XCRemoteSwiftPackageReference "CryoKit" */,
 			);
+			preferredProjectObjectVersion = 77;
 			productRefGroup = C0E7AD4B2F7574E1008A8596 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
