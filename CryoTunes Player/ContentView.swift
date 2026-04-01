@@ -245,14 +245,14 @@ struct ContentView: View {
             // Time labels
             HStack {
                 Text(formatTime(elapsed))
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(iceAccent.opacity(0.5))
+                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceAccent.opacity(0.6))
 
                 Spacer()
 
                 Text("-\(formatTime(remaining)) / \(formatTime(duration))")
-                    .font(.system(size: 10, weight: .medium, design: .monospaced))
-                    .foregroundStyle(iceAccent.opacity(0.5))
+                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceAccent.opacity(0.6))
             }
         }
     }
