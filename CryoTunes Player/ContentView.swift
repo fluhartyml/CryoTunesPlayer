@@ -167,8 +167,22 @@ struct ContentView: View {
                         )
                 )
 
-            // Album art blacked out for development
-            artPlaceholder
+            if let url = playerManager.currentArtworkURL {
+                AsyncImage(url: url) { phase in
+                    switch phase {
+                    case .success(let image):
+                        image
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .clipShape(RoundedRectangle(cornerRadius: 6))
+                            .padding(4)
+                    default:
+                        artPlaceholder
+                    }
+                }
+            } else {
+                artPlaceholder
+            }
         }
         .aspectRatio(1, contentMode: .fit)
     }
