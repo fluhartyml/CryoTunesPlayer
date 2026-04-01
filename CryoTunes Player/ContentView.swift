@@ -51,6 +51,12 @@ struct ContentView: View {
                 // Track info
                 trackInfoView
 
+                Spacer().frame(height: 6)
+
+                // Progress bar
+                progressBar
+                    .padding(.horizontal, 32)
+
                 Spacer().frame(height: 8)
 
                 // Sleep timer display
@@ -161,22 +167,8 @@ struct ContentView: View {
                         )
                 )
 
-            if let url = playerManager.currentArtworkURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .padding(4)
-                    default:
-                        artPlaceholder
-                    }
-                }
-            } else {
-                artPlaceholder
-            }
+            // Album art blacked out for development
+            artPlaceholder
         }
         .aspectRatio(1, contentMode: .fit)
     }
@@ -223,6 +215,53 @@ struct ContentView: View {
             .frame(height: 56)
             .padding(.horizontal, 32)
         }
+    }
+
+    // MARK: - Progress Bar
+
+    private var progressBar: some View {
+        let elapsed = playerManager.playbackTime
+        let duration = playerManager.trackDuration
+        let remaining = max(0, duration - elapsed)
+        let progress = duration > 0 ? elapsed / duration : 0
+
+        return VStack(spacing: 4) {
+            // Progress line
+            GeometryReader { geo in
+                ZStack(alignment: .leading) {
+                    // Track background
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(iceBorder.opacity(0.2))
+                        .frame(height: 3)
+
+                    // Elapsed fill
+                    RoundedRectangle(cornerRadius: 1.5)
+                        .fill(iceAccent.opacity(0.6))
+                        .frame(width: geo.size.width * progress, height: 3)
+                }
+            }
+            .frame(height: 3)
+
+            // Time labels
+            HStack {
+                Text(formatTime(elapsed))
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceAccent.opacity(0.5))
+
+                Spacer()
+
+                Text("-\(formatTime(remaining)) / \(formatTime(duration))")
+                    .font(.system(size: 10, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceAccent.opacity(0.5))
+            }
+        }
+    }
+
+    private func formatTime(_ seconds: TimeInterval) -> String {
+        let totalSeconds = Int(max(0, seconds))
+        let mins = totalSeconds / 60
+        let secs = totalSeconds % 60
+        return String(format: "%d:%02d", mins, secs)
     }
 
     // MARK: - Timer Display
