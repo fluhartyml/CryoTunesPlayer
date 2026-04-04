@@ -97,7 +97,7 @@ struct SettingsView: View {
                         .font(.system(size: 14, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Spacer()
-                    Text("v2.1")
+                    Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
                         .font(.system(size: 13, design: .monospaced))
                         .foregroundStyle(iceBorder)
                 }

@@ -112,12 +112,23 @@ struct ContentView: View {
 
     // MARK: - Top Bar
 
+    private var appVersion: String {
+        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
+        return "v\(version) (\(build))"
+    }
+
     private var topBar: some View {
         HStack {
             VStack(alignment: .leading, spacing: 0) {
-                Text("CryoTunes")
-                    .font(.system(size: 20, weight: .bold, design: .monospaced))
-                    .foregroundStyle(iceBlue)
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Text("CryoTunes")
+                        .font(.system(size: 20, weight: .bold, design: .monospaced))
+                        .foregroundStyle(iceBlue)
+                    Text(appVersion)
+                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .foregroundStyle(iceBorder.opacity(0.5))
+                }
                 Text("Player")
                     .font(.system(size: 12, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceBlue.opacity(0.6))
