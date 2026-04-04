@@ -94,22 +94,22 @@ struct SettingsView: View {
             VStack(spacing: 6) {
                 HStack {
                     Text("CryoTunes Player")
-                        .font(.system(size: 14, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Spacer()
                     Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
-                        .font(.system(size: 13, design: .monospaced))
+                        .font(.system(size: 18, design: .monospaced))
                         .foregroundStyle(iceBorder)
                 }
                 HStack {
                     Text("Michael Lee Fluharty")
-                        .font(.system(size: 12, design: .monospaced))
+                        .font(.system(size: 18, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.7))
                     Spacer()
                 }
                 HStack {
                     Text("Engineered with Claude by Anthropic")
-                        .font(.system(size: 11, design: .monospaced))
+                        .font(.system(size: 18, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.5))
                     Spacer()
                 }
@@ -117,12 +117,12 @@ struct SettingsView: View {
                 Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
                     HStack(spacing: 4) {
                         Image(systemName: "apple.logo")
-                            .font(.system(size: 11))
+                            .font(.system(size: 18))
                         Text("Weather")
-                            .font(.system(size: 11, weight: .medium, design: .monospaced))
+                            .font(.system(size: 18, weight: .medium, design: .monospaced))
                         Spacer()
                         Image(systemName: "arrow.up.right.square")
-                            .font(.system(size: 10))
+                            .font(.system(size: 18))
                     }
                     .foregroundStyle(iceBorder.opacity(0.5))
                 }
@@ -135,7 +135,7 @@ struct SettingsView: View {
     private func sectionContainer<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
-                .font(.system(size: 11, weight: .bold, design: .monospaced))
+                .font(.system(size: 18, weight: .bold, design: .monospaced))
                 .foregroundStyle(iceBorder)
                 .tracking(1.5)
 

@@ -126,11 +126,11 @@ struct ContentView: View {
                         .font(.system(size: 20, weight: .bold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Text(appVersion)
-                        .font(.system(size: 11, weight: .medium, design: .monospaced))
+                        .font(.system(size: 18, weight: .medium, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.5))
                 }
                 Text("Player")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceBlue.opacity(0.6))
             }
 
@@ -198,14 +198,23 @@ struct ContentView: View {
         .aspectRatio(1, contentMode: .fit)
     }
 
+    @ViewBuilder
     private var artPlaceholder: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "music.note")
-                .font(.system(size: 60))
-                .foregroundStyle(iceBorder.opacity(0.4))
-            Text("CryoTunes Player")
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
-                .foregroundStyle(iceBorder.opacity(0.4))
+        if let uiImage = UIImage(named: "AppIcon") {
+            Image(uiImage: uiImage)
+                .resizable()
+                .aspectRatio(contentMode: .fit)
+                .clipShape(RoundedRectangle(cornerRadius: 6))
+                .padding(4)
+        } else {
+            VStack(spacing: 12) {
+                Image(systemName: "music.note")
+                    .font(.system(size: 60))
+                    .foregroundStyle(iceBorder.opacity(0.4))
+                Text("CryoTunes Player")
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceBorder.opacity(0.4))
+            }
         }
     }
 
@@ -224,13 +233,13 @@ struct ContentView: View {
 
                 VStack(spacing: 2) {
                     Text(playerManager.currentSongTitle.isEmpty ? "No Track" : playerManager.currentSongTitle)
-                        .font(.system(size: 16, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                         .lineLimit(1)
                         .shadow(color: iceGlow.opacity(0.3), radius: 2)
 
                     Text(playerManager.currentArtistName.isEmpty ? "---" : playerManager.currentArtistName)
-                        .font(.system(size: 13, weight: .regular, design: .monospaced))
+                        .font(.system(size: 18, weight: .regular, design: .monospaced))
                         .foregroundStyle(iceAccent.opacity(0.7))
                         .lineLimit(1)
                 }
@@ -357,12 +366,12 @@ struct ContentView: View {
         VStack(spacing: 4) {
             if playerManager.currentStation != .none {
                 Text(playerManager.nowPlayingTitle)
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceAccent.opacity(0.5))
                     .lineLimit(1)
 
                 Text(playerManager.currentStation.category.rawValue.uppercased())
-                    .font(.system(size: 10, weight: .regular, design: .monospaced))
+                    .font(.system(size: 18, weight: .regular, design: .monospaced))
                     .foregroundStyle(iceBorder.opacity(0.4))
             }
         }
@@ -376,19 +385,19 @@ struct ContentView: View {
                 .foregroundStyle(iceAccent)
 
             Text(shazamManager.matchedTitle)
-                .font(.system(size: 16, weight: .bold, design: .monospaced))
+                .font(.system(size: 18, weight: .bold, design: .monospaced))
                 .foregroundStyle(iceBlue)
                 .lineLimit(2)
                 .multilineTextAlignment(.center)
 
             Text(shazamManager.matchedArtist)
-                .font(.system(size: 14, design: .monospaced))
+                .font(.system(size: 18, design: .monospaced))
                 .foregroundStyle(iceAccent.opacity(0.7))
                 .lineLimit(1)
 
             if shazamManager.addedToLibrary {
                 Text("Added to Library")
-                    .font(.system(size: 12, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
                     .foregroundStyle(.green.opacity(0.8))
                     .padding(.top, 4)
             }
@@ -418,7 +427,7 @@ struct ContentView: View {
                 .foregroundStyle(iceBorder.opacity(0.5))
 
             Text("No Match Found")
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .font(.system(size: 18, weight: .medium, design: .monospaced))
                 .foregroundStyle(iceBorder)
         }
         .padding(24)
@@ -443,7 +452,7 @@ struct ContentView: View {
                 .foregroundStyle(.red.opacity(0.7))
 
             Text(playerManager.errorMessage)
-                .font(.system(size: 14, weight: .medium, design: .monospaced))
+                .font(.system(size: 18, weight: .medium, design: .monospaced))
                 .foregroundStyle(iceBorder)
                 .multilineTextAlignment(.center)
         }
