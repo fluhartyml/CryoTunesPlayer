@@ -32,6 +32,29 @@ struct FeedbackView: View {
         return "v\(v) (\(b))"
     }
 
+    private var deviceInfo: String {
+        let device = UIDevice.current
+        var sysinfo = utsname()
+        uname(&sysinfo)
+        let model = withUnsafePointer(to: &sysinfo.machine) {
+            $0.withMemoryRebound(to: CChar.self, capacity: 1) { String(validatingCString: $0) ?? "Unknown" }
+        }
+        let storage: String = {
+            guard let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
+                  let free = attrs[.systemFreeSize] as? Int64 else { return "Unknown" }
+            return ByteCountFormatter.string(fromByteCount: free, countStyle: .file)
+        }()
+        return """
+
+        --- Device Info ---
+        App: \(appName) \(version)
+        Device: \(model)
+        System: \(device.systemName) \(device.systemVersion)
+        Storage Available: \(storage)
+        Locale: \(Locale.current.identifier)
+        """
+    }
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -104,7 +127,7 @@ struct FeedbackView: View {
             .sheet(isPresented: $showingMailSheet) {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
-                    body: feedbackText,
+                    body: feedbackText + "\n\n" + deviceInfo,
                     recipient: "feedback@nightgard.com"
                 )
             }
