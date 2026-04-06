@@ -7,12 +7,14 @@
 
 import SwiftUI
 import AVKit
+import MessageUI
 import MusicKit
 import CryoKit
 
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlaybackManager
     @Environment(\.dismiss) private var dismiss
+    @State private var showingFeedback = false
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
     private let iceDark = Color(red: 0.12, green: 0.18, blue: 0.28)
@@ -125,6 +127,24 @@ struct SettingsView: View {
                             .font(.system(size: 18))
                     }
                     .foregroundStyle(iceBorder.opacity(0.5))
+                }
+                Divider().overlay(iceBorder.opacity(0.2))
+                Button {
+                    showingFeedback = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "envelope")
+                            .font(.system(size: 18))
+                        Text("Send Feedback")
+                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 18))
+                    }
+                    .foregroundStyle(iceAccent)
+                }
+                .sheet(isPresented: $showingFeedback) {
+                    FeedbackView(appName: "CryoTunes Player")
                 }
             }
         }
