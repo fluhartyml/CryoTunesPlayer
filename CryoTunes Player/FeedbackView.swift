@@ -128,13 +128,13 @@ struct FeedbackView: View {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
                     body: feedbackText + "\n\n" + deviceInfo,
-                    recipient: "feedback@nightgard.com"
+                    recipient: "michael.fluharty@mac.com"
                 )
             }
             .alert("Mail Not Available", isPresented: $showingMailUnavailable) {
                 Button("OK") { }
             } message: {
-                Text("Please configure a mail account in Settings, or email feedback@nightgard.com directly.")
+                Text("Please configure a mail account in Settings, or email michael.fluharty@mac.com directly.")
             }
         }
     }
