@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import MusicKit
 import CryoKit
 
 struct CryoTransportControls: View {
@@ -15,6 +16,10 @@ struct CryoTransportControls: View {
     let dark: Color
     let border: Color
     let glow: Color
+    @State private var showShareSheet = false
+    @State private var ratingState: RatingState = .none
+
+    enum RatingState { case none, loved, disliked }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -75,7 +80,72 @@ struct CryoTransportControls: View {
                 .frame(maxWidth: .infinity)
             }
             .padding(.horizontal, 8)
+
+            // Row 3: Thumbs Up, Thumbs Down, Share
+            HStack(spacing: 16) {
+                Button { thumbsUp() } label: {
+                    modeButton(
+                        icon: "hand.thumbsup.fill",
+                        label: "Love",
+                        isActive: ratingState == .loved
+                    )
+                }
+                .frame(maxWidth: .infinity)
+
+                Button { thumbsDown() } label: {
+                    modeButton(
+                        icon: "hand.thumbsdown.fill",
+                        label: "Skip",
+                        isActive: ratingState == .disliked
+                    )
+                }
+                .frame(maxWidth: .infinity)
+
+                Button { showShareSheet = true } label: {
+                    modeButton(
+                        icon: "square.and.arrow.up",
+                        label: "Share",
+                        isActive: false
+                    )
+                }
+                .frame(maxWidth: .infinity)
+            }
+            .padding(.horizontal, 8)
+            .sheet(isPresented: $showShareSheet) {
+                if let url = currentSongShareURL {
+                    ShareLink(item: url)
+                }
+            }
         }
+        .onChange(of: player.currentSongTitle) { _, _ in
+            ratingState = .none
+        }
+    }
+
+    // MARK: - Rating & Share
+
+    private func thumbsUp() {
+        Task {
+            guard let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
+                  case let .song(song) = entry.item else { return }
+            do {
+                try await MusicLibrary.shared.add(song)
+                ratingState = .loved
+            } catch {}
+        }
+    }
+
+    private func thumbsDown() {
+        Task {
+            ratingState = .disliked
+            player.skipForward()
+        }
+    }
+
+    private var currentSongShareURL: URL? {
+        guard let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
+              case let .song(song) = entry.item else { return nil }
+        return song.url
     }
 
     // MARK: - Button Styles
