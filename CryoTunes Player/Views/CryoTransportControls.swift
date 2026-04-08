@@ -86,7 +86,7 @@ struct CryoTransportControls: View {
                 Button { thumbsUp() } label: {
                     modeButton(
                         icon: "hand.thumbsup.fill",
-                        label: "Love",
+                        label: "Like",
                         isActive: ratingState == .loved
                     )
                 }
@@ -113,7 +113,7 @@ struct CryoTransportControls: View {
             .padding(.horizontal, 8)
             .sheet(isPresented: $showShareSheet) {
                 if let url = currentSongShareURL {
-                    ShareLink(item: url)
+                    ActivityView(activityItems: [url])
                 }
             }
         }
@@ -145,7 +145,9 @@ struct CryoTransportControls: View {
     private var currentSongShareURL: URL? {
         guard let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
               case let .song(song) = entry.item else { return nil }
-        return song.url
+        if let url = song.url { return url }
+        // Fallback: build Apple Music link from song ID
+        return URL(string: "https://music.apple.com/song/\(song.id.rawValue)")
     }
 
     // MARK: - Button Styles
@@ -213,4 +215,14 @@ struct CryoTransportControls: View {
         }
         .frame(height: 36)
     }
+}
+
+struct ActivityView: UIViewControllerRepresentable {
+    let activityItems: [Any]
+
+    func makeUIViewController(context: Context) -> UIActivityViewController {
+        UIActivityViewController(activityItems: activityItems, applicationActivities: nil)
+    }
+
+    func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
