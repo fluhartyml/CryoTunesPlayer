@@ -13,8 +13,10 @@ import CryoKit
 
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlaybackManager
+    var dislikeManager: DislikeManager
     @Environment(\.dismiss) private var dismiss
     @State private var showingFeedback = false
+    @State private var showResetAllConfirm = false
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
     private let iceDark = Color(red: 0.12, green: 0.18, blue: 0.28)
@@ -30,6 +32,11 @@ struct SettingsView: View {
 
                     // Sleep Timer
                     sleepTimerSection
+
+                    // Manage Dislikes
+                    if !dislikeManager.stationsWithDislikes().isEmpty {
+                        dislikesSection
+                    }
 
                     // AirPlay
                     airPlaySection
@@ -86,6 +93,65 @@ struct SettingsView: View {
         sectionContainer(title: "AirPlay") {
             AirPlayButton()
                 .frame(height: 44)
+        }
+    }
+
+    // MARK: - Manage Dislikes
+
+    private var dislikesSection: some View {
+        sectionContainer(title: "Manage Dislikes") {
+            VStack(spacing: 8) {
+                ForEach(dislikeManager.stationsWithDislikes(), id: \.station) { item in
+                    HStack {
+                        Text(item.station.rawValue)
+                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                            .foregroundStyle(iceBlue)
+                            .lineLimit(1)
+
+                        Spacer()
+
+                        Text("\(item.count)")
+                            .font(.system(size: 18, design: .monospaced))
+                            .foregroundStyle(iceBorder)
+
+                        Button {
+                            dislikeManager.resetStation(item.station)
+                        } label: {
+                            Text("Reset")
+                                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                                .foregroundStyle(.red.opacity(0.8))
+                        }
+                    }
+                    .padding(.vertical, 4)
+
+                    if item.station != dislikeManager.stationsWithDislikes().last?.station {
+                        Divider().overlay(iceBorder.opacity(0.2))
+                    }
+                }
+
+                Divider().overlay(iceBorder.opacity(0.2))
+
+                Button {
+                    showResetAllConfirm = true
+                } label: {
+                    HStack {
+                        Image(systemName: "trash")
+                            .font(.system(size: 18))
+                        Text("Reset All Dislikes")
+                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                        Spacer()
+                    }
+                    .foregroundStyle(.red.opacity(0.8))
+                }
+                .alert("Reset All Dislikes?", isPresented: $showResetAllConfirm) {
+                    Button("Cancel", role: .cancel) {}
+                    Button("Reset All", role: .destructive) {
+                        dislikeManager.resetAll()
+                    }
+                } message: {
+                    Text("This will clear all disliked songs on every station.")
+                }
+            }
         }
     }
 

@@ -13,6 +13,7 @@ import CryoKit
 struct ContentView: View {
     @State private var playerManager = MusicPlaybackManager()
     @State private var weatherManager = CryoWeatherManager()
+    @State private var dislikeManager = DislikeManager()
     @State private var showSettings = false
     @State private var shazamManager = ShazamManager()
 
@@ -86,7 +87,7 @@ struct ContentView: View {
             }
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(playerManager: playerManager)
+            SettingsView(playerManager: playerManager, dislikeManager: dislikeManager)
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -319,6 +320,7 @@ struct ContentView: View {
     private var transportControls: some View {
         CryoTransportControls(
             player: playerManager,
+            dislikeManager: dislikeManager,
             tint: iceBlue,
             accent: iceAccent,
             dark: iceDark,

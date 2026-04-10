@@ -11,6 +11,7 @@ import CryoKit
 
 struct CryoTransportControls: View {
     @Bindable var player: MusicPlaybackManager
+    var dislikeManager: DislikeManager
     let tint: Color
     let accent: Color
     let dark: Color
@@ -25,7 +26,7 @@ struct CryoTransportControls: View {
         VStack(spacing: 12) {
             // Row 1: Transport
             HStack(spacing: 32) {
-                Button { player.skipBack() } label: {
+                Button { skipBackWithUndo() } label: {
                     transportButton(icon: "backward.end.fill", size: 24)
                 }
 
@@ -37,7 +38,7 @@ struct CryoTransportControls: View {
                     )
                 }
 
-                Button { player.skipForward() } label: {
+                Button { skipForwardWithDislike() } label: {
                     transportButton(icon: "forward.end.fill", size: 24)
                 }
 
@@ -119,6 +120,7 @@ struct CryoTransportControls: View {
         }
         .onChange(of: player.currentSongTitle) { _, _ in
             ratingState = .none
+            autoSkipIfDisliked()
         }
     }
 
@@ -136,10 +138,51 @@ struct CryoTransportControls: View {
     }
 
     private func thumbsDown() {
+        recordDislikeAndSkip()
+    }
+
+    /// Skip forward records a dislike for the current song on the current station
+    private func skipForwardWithDislike() {
+        recordDislikeAndSkip()
+    }
+
+    /// Previous track undoes the last dislike if the undo window is still open
+    private func skipBackWithUndo() {
+        if dislikeManager.lastDislike != nil {
+            dislikeManager.undoLastDislike()
+            ratingState = .none
+        }
+        player.skipBack()
+    }
+
+    /// Shared logic: dislike the current song on the current station, then skip
+    private func recordDislikeAndSkip() {
         Task {
+            if let songID = currentSongID, player.currentStation != .none {
+                dislikeManager.dislike(songID: songID, on: player.currentStation)
+            }
             ratingState = .disliked
             player.skipForward()
         }
+    }
+
+    /// Auto-skip disliked songs — call this from .onChange of currentSongTitle
+    private func autoSkipIfDisliked() {
+        guard let songID = currentSongID,
+              player.currentStation != .none,
+              dislikeManager.isDisliked(songID: songID, on: player.currentStation) else {
+            // Song is not disliked — clear undo window from previous skip
+            dislikeManager.clearUndo()
+            return
+        }
+        // This song is disliked on this station — auto-skip without recording again
+        player.skipForward()
+    }
+
+    private var currentSongID: String? {
+        guard let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
+              case let .song(song) = entry.item else { return nil }
+        return song.id.rawValue
     }
 
     private var currentSongShareURL: URL? {
