@@ -75,7 +75,9 @@ struct CryoStationPicker: View {
             }
 
             if expandedCategories.contains(category) {
-                ForEach(MusicStationOption.stations(for: category), id: \.self) { station in
+                ForEach(MusicStationOption.stations(for: category).filter {
+                    $0 != .personalStation && $0 != .discoveryStation
+                }, id: \.self) { station in
                     stationRow(station: station)
                 }
 

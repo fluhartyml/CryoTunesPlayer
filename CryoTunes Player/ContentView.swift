@@ -473,9 +473,13 @@ struct ContentView: View {
                     .foregroundStyle(iceAccent.opacity(0.5))
                     .lineLimit(1)
 
+                Text(playerManager.currentStation.rawValue)
+                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                    .foregroundStyle(iceBorder.opacity(0.5))
+
                 Text(playerManager.currentStation.category.rawValue.uppercased())
                     .font(.system(size: 18, weight: .regular, design: .monospaced))
-                    .foregroundStyle(iceBorder.opacity(0.4))
+                    .foregroundStyle(iceBorder.opacity(0.3))
             }
         }
     }
