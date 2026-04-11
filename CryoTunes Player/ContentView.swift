@@ -355,6 +355,36 @@ struct ContentView: View {
         }
     }
 
+    private func openShazamAlbum() {
+        guard let appleMusicID = shazamManager.matchedSong?.appleMusicID else {
+            // No Apple Music ID — just dismiss
+            shazamManager.matchedTitle = ""
+            shazamManager.matchedArtist = ""
+            shazamManager.addedToLibrary = false
+            return
+        }
+        Task {
+            do {
+                let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(appleMusicID))
+                let response = try await request.response()
+                guard let song = response.items.first else { return }
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first {
+                    let detailedAlbum = try await album.with([.tracks])
+                    await MainActor.run {
+                        shazamManager.matchedTitle = ""
+                        shazamManager.matchedArtist = ""
+                        shazamManager.addedToLibrary = false
+                        selectedAlbum = detailedAlbum
+                        showAlbumView = true
+                    }
+                }
+            } catch {
+                print("Shazam album error: \(error)")
+            }
+        }
+    }
+
     private func openAlbumInMusic(for song: Song) {
         Task {
             do {
@@ -508,6 +538,11 @@ struct ContentView: View {
                     .foregroundStyle(.green.opacity(0.8))
                     .padding(.top, 4)
             }
+
+            Text("Tap to view album")
+                .font(.system(size: 14, design: .monospaced))
+                .foregroundStyle(iceAccent.opacity(0.5))
+                .padding(.top, 4)
         }
         .padding(24)
         .background(
@@ -520,9 +555,7 @@ struct ContentView: View {
         )
         .shadow(color: iceGlow.opacity(0.2), radius: 10)
         .onTapGesture {
-            shazamManager.matchedTitle = ""
-            shazamManager.matchedArtist = ""
-            shazamManager.addedToLibrary = false
+            openShazamAlbum()
         }
         .transition(.opacity)
     }
