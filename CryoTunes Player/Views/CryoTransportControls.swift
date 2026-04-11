@@ -12,6 +12,7 @@ import CryoKit
 struct CryoTransportControls: View {
     @Bindable var player: MusicPlaybackManager
     var dislikeManager: DislikeManager
+    var playlistManager: PlaylistManager
     let tint: Color
     let accent: Color
     let dark: Color
@@ -133,6 +134,10 @@ struct CryoTransportControls: View {
             do {
                 try await MusicLibrary.shared.add(song)
                 ratingState = .loved
+                // Add to per-station playlist
+                if player.currentStation != .none {
+                    await playlistManager.addToStationPlaylist(song, station: player.currentStation)
+                }
             } catch {}
         }
     }
@@ -141,9 +146,9 @@ struct CryoTransportControls: View {
         recordDislikeAndSkip()
     }
 
-    /// Skip forward records a dislike for the current song on the current station
+    /// Skip forward — just advances the track, no dislike
     private func skipForwardWithDislike() {
-        recordDislikeAndSkip()
+        player.skipForward()
     }
 
     /// Previous track undoes the last dislike if the undo window is still open

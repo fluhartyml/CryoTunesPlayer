@@ -14,7 +14,10 @@ struct ContentView: View {
     @State private var playerManager = MusicPlaybackManager()
     @State private var weatherManager = CryoWeatherManager()
     @State private var dislikeManager = DislikeManager()
+    @State private var playlistManager = PlaylistManager()
     @State private var showSettings = false
+    @State private var showAlbumView = false
+    @State private var selectedAlbum: Album?
     @State private var shazamManager = ShazamManager()
 
     // Ice blue palette
@@ -43,9 +46,37 @@ struct ContentView: View {
 
                 Spacer()
 
-                // Album art
+                // Album art — long press for album actions
                 albumArtView
                     .padding(.horizontal, 32)
+                    .contextMenu {
+                        if let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
+                           case let .song(song) = entry.item {
+                            Button {
+                                openAlbumInApp(for: song)
+                            } label: {
+                                Label("Open Album", systemImage: "music.note.list")
+                            }
+
+                            Button {
+                                addAlbumToLibrary(for: song)
+                            } label: {
+                                Label("Add Album to Library", systemImage: "plus.rectangle.on.folder")
+                            }
+
+                            Button {
+                                playAlbum(for: song)
+                            } label: {
+                                Label("Play This Album", systemImage: "play.rectangle")
+                            }
+
+                            Button {
+                                openAlbumInMusic(for: song)
+                            } label: {
+                                Label("Open in Apple Music", systemImage: "arrow.up.forward.app")
+                            }
+                        }
+                    }
 
                 Spacer().frame(height: 20)
 
@@ -89,9 +120,15 @@ struct ContentView: View {
         .sheet(isPresented: $showSettings) {
             SettingsView(playerManager: playerManager, dislikeManager: dislikeManager)
         }
+        .sheet(isPresented: $showAlbumView) {
+            if let album = selectedAlbum {
+                AlbumDetailView(album: album, playlistManager: playlistManager)
+            }
+        }
         .preferredColorScheme(.dark)
         .onAppear {
             weatherManager.requestWeather()
+            shazamManager.playlistManager = playlistManager
         }
     }
 
@@ -299,6 +336,69 @@ struct ContentView: View {
         return String(format: "%d:%02d", mins, secs)
     }
 
+    // MARK: - Album Actions
+
+    private func openAlbumInApp(for song: Song) {
+        Task {
+            do {
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first {
+                    let detailedAlbum = try await album.with([.tracks])
+                    await MainActor.run {
+                        selectedAlbum = detailedAlbum
+                        showAlbumView = true
+                    }
+                }
+            } catch {
+                print("Open album error: \(error)")
+            }
+        }
+    }
+
+    private func openAlbumInMusic(for song: Song) {
+        Task {
+            do {
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first, let url = album.url {
+                    await MainActor.run { UIApplication.shared.open(url) }
+                }
+            } catch {
+                print("Open album error: \(error)")
+            }
+        }
+    }
+
+    private func addAlbumToLibrary(for song: Song) {
+        Task {
+            do {
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first {
+                    try await MusicLibrary.shared.add(album)
+                    let detailedAlbum = try await album.with([.tracks])
+                    await playlistManager.addAlbumPlaylist(detailedAlbum)
+                }
+            } catch {
+                print("Add album error: \(error)")
+            }
+        }
+    }
+
+    private func playAlbum(for song: Song) {
+        Task {
+            do {
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first {
+                    let detailedAlbum = try await album.with([.tracks])
+                    await playlistManager.addAlbumPlaylist(detailedAlbum)
+                    ApplicationMusicPlayer.shared.queue = .init(for: detailedAlbum.tracks ?? [])
+                    try await ApplicationMusicPlayer.shared.play()
+                }
+            } catch {
+                print("Play album error: \(error)")
+            }
+        }
+    }
+
     // MARK: - Timer Display
 
     private var timerDisplay: some View {
@@ -321,6 +421,7 @@ struct ContentView: View {
         CryoTransportControls(
             player: playerManager,
             dislikeManager: dislikeManager,
+            playlistManager: playlistManager,
             tint: iceBlue,
             accent: iceAccent,
             dark: iceDark,

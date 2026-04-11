@@ -18,6 +18,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
     var matchedArtist = ""
     var noMatch = false
     var addedToLibrary = false
+    var playlistManager: PlaylistManager?
 
     private var session = SHSession()
     private var audioEngine = AVAudioEngine()
@@ -105,6 +106,8 @@ class ShazamManager: NSObject, SHSessionDelegate {
             let response = try await request.response()
             guard let song = response.items.first else { return }
             try await MusicLibrary.shared.add(song)
+            // Add to Shazamed Songs playlist
+            await playlistManager?.addToShazamPlaylist(song)
             await MainActor.run { addedToLibrary = true }
         } catch {
             print("Add to library error: \(error)")
