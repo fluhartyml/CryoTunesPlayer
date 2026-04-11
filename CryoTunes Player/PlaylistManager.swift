@@ -54,6 +54,11 @@ final class PlaylistManager {
     private func addSong(_ song: Song, toPlaylistNamed name: String, description: String) async {
         do {
             let playlist = try await findOrCreate(name: name, description: description)
+            // Check if song is already in the playlist
+            let detailed = try await playlist.with([.tracks])
+            if let tracks = detailed.tracks, tracks.contains(where: { $0.id == song.id }) {
+                return // Already in playlist, skip
+            }
             try await MusicLibrary.shared.add(song, to: playlist)
         } catch {
             print("PlaylistManager: failed to add song to \"\(name)\": \(error)")
