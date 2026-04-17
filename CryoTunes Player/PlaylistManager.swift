@@ -28,7 +28,7 @@ final class PlaylistManager {
     /// Create an album playlist with all the album's tracks (skips if already exists)
     func addAlbumPlaylist(_ album: Album) async {
         guard let title = album.title as String? else { return }
-        let name = title
+        let name = "\(title) - \(album.artistName)"
         let description = "Album playlist created by CryoTunes Player"
         do {
             let playlist = try await findOrCreate(name: name, description: description)
