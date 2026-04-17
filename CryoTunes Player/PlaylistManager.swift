@@ -42,9 +42,9 @@ final class PlaylistManager {
         }
     }
 
-    /// Add a song to a per-station thumbs-up playlist (e.g., "CryoTunes - Jazz")
+    /// Add a song to a per-station thumbs-up playlist (e.g., "Jazz - CryoTunes")
     func addToStationPlaylist(_ song: Song, station: MusicStationOption) async {
-        let name = "CryoTunes - \(station.rawValue)"
+        let name = "\(station.rawValue) - CryoTunes"
         let description = "Liked songs from \(station.rawValue) on CryoTunes Player"
         await addSong(song, toPlaylistNamed: name, description: description)
     }
