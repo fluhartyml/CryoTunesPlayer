@@ -37,6 +37,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
         await MainActor.run {
             isListening = true
             noMatch = false
+            matchedSong = nil
             matchedTitle = ""
             matchedArtist = ""
         }

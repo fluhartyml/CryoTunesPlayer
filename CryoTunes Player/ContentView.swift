@@ -19,6 +19,8 @@ struct ContentView: View {
     @State private var showAlbumView = false
     @State private var selectedAlbum: Album?
     @State private var shazamManager = ShazamManager()
+    @State private var shazamLoadingAlbum = false
+    @State private var showShazamNoMatchSheet = false
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -109,13 +111,21 @@ struct ContentView: View {
             .padding(.bottom, 20)
         }
         .overlay(alignment: .center) {
-            if !shazamManager.matchedTitle.isEmpty {
-                shazamResultOverlay
-            } else if shazamManager.noMatch {
-                shazamNoMatchOverlay
+            if shazamLoadingAlbum {
+                shazamLoadingOverlay
             } else if !playerManager.errorMessage.isEmpty {
                 errorOverlay
             }
+        }
+        .onChange(of: shazamManager.matchedTitle) { _, newTitle in
+            guard !newTitle.isEmpty else { return }
+            shazamLoadingAlbum = true
+            openShazamAlbum()
+        }
+        .onChange(of: shazamManager.noMatch) { _, newNoMatch in
+            guard newNoMatch else { return }
+            shazamManager.noMatch = false
+            showShazamNoMatchSheet = true
         }
         .sheet(isPresented: $showSettings) {
             SettingsView(playerManager: playerManager, dislikeManager: dislikeManager)
@@ -124,6 +134,9 @@ struct ContentView: View {
             if let album = selectedAlbum {
                 AlbumDetailView(album: album, playlistManager: playlistManager)
             }
+        }
+        .sheet(isPresented: $showShazamNoMatchSheet) {
+            ShazamNoMatchSheet()
         }
         .preferredColorScheme(.dark)
         .onAppear {
@@ -357,32 +370,44 @@ struct ContentView: View {
 
     private func openShazamAlbum() {
         guard let appleMusicID = shazamManager.matchedSong?.appleMusicID else {
-            // No Apple Music ID — just dismiss
-            shazamManager.matchedTitle = ""
-            shazamManager.matchedArtist = ""
-            shazamManager.addedToLibrary = false
+            presentShazamNoMatch()
             return
         }
         Task {
             do {
                 let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(appleMusicID))
                 let response = try await request.response()
-                guard let song = response.items.first else { return }
+                guard let song = response.items.first else {
+                    await MainActor.run { presentShazamNoMatch() }
+                    return
+                }
                 let detailedSong = try await song.with([.albums])
                 if let album = detailedSong.albums?.first {
                     let detailedAlbum = try await album.with([.tracks])
                     await MainActor.run {
+                        shazamLoadingAlbum = false
                         shazamManager.matchedTitle = ""
                         shazamManager.matchedArtist = ""
                         shazamManager.addedToLibrary = false
                         selectedAlbum = detailedAlbum
                         showAlbumView = true
                     }
+                } else {
+                    await MainActor.run { presentShazamNoMatch() }
                 }
             } catch {
                 print("Shazam album error: \(error)")
+                await MainActor.run { presentShazamNoMatch() }
             }
         }
+    }
+
+    private func presentShazamNoMatch() {
+        shazamLoadingAlbum = false
+        shazamManager.matchedTitle = ""
+        shazamManager.matchedArtist = ""
+        shazamManager.addedToLibrary = false
+        showShazamNoMatchSheet = true
     }
 
     private func addAlbumToLibrary(for song: Song) {
@@ -502,34 +527,17 @@ struct ContentView: View {
     }
     // MARK: - Shazam Overlays
 
-    private var shazamResultOverlay: some View {
+    private var shazamLoadingOverlay: some View {
         VStack(spacing: 8) {
             Image(systemName: "shazam.logo.fill")
                 .font(.system(size: 32))
                 .foregroundStyle(iceAccent)
+                .symbolEffect(.pulse, options: .repeating)
 
-            Text(shazamManager.matchedTitle)
-                .font(.system(size: 18, weight: .bold, design: .monospaced))
-                .foregroundStyle(iceBlue)
-                .lineLimit(2)
-                .multilineTextAlignment(.center)
-
-            Text(shazamManager.matchedArtist)
+            Text("Shazam match — loading album…")
                 .font(.system(size: 18, design: .monospaced))
-                .foregroundStyle(iceAccent.opacity(0.7))
-                .lineLimit(1)
-
-            if shazamManager.addedToLibrary {
-                Text("Added to Library")
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
-                    .foregroundStyle(.green.opacity(0.8))
-                    .padding(.top, 4)
-            }
-
-            Text("Tap to view album")
-                .font(.system(size: 14, design: .monospaced))
-                .foregroundStyle(iceAccent.opacity(0.5))
-                .padding(.top, 4)
+                .foregroundStyle(iceBlue)
+                .multilineTextAlignment(.center)
         }
         .padding(24)
         .background(
@@ -541,34 +549,6 @@ struct ContentView: View {
                 )
         )
         .shadow(color: iceGlow.opacity(0.2), radius: 10)
-        .onTapGesture {
-            openShazamAlbum()
-        }
-        .transition(.opacity)
-    }
-
-    private var shazamNoMatchOverlay: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "shazam.logo.fill")
-                .font(.system(size: 32))
-                .foregroundStyle(iceBorder.opacity(0.5))
-
-            Text("No Match Found")
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
-                .foregroundStyle(iceBorder)
-        }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(iceDark.opacity(0.95))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(iceBorder.opacity(0.3), lineWidth: 1)
-                )
-        )
-        .onTapGesture {
-            shazamManager.noMatch = false
-        }
         .transition(.opacity)
     }
 
@@ -601,4 +581,56 @@ struct ContentView: View {
 
 #Preview {
     ContentView()
+}
+
+struct ShazamNoMatchSheet: View {
+    @Environment(\.dismiss) private var dismiss
+
+    private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
+    private let iceAccent = Color(red: 0.5, green: 0.78, blue: 0.95)
+    private let iceBorder = Color(red: 0.35, green: 0.55, blue: 0.75)
+
+    var body: some View {
+        NavigationStack {
+            ScrollView {
+                VStack(spacing: 18) {
+                    Image("CryoTunesIcon")
+                        .resizable()
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 240, height: 240)
+                        .cornerRadius(12)
+                        .shadow(color: iceAccent.opacity(0.3), radius: 12)
+
+                    Text("No Match Found")
+                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .foregroundStyle(iceBlue)
+                        .multilineTextAlignment(.center)
+
+                    Text("Shazam couldn't identify this song.")
+                        .font(.system(size: 18, design: .monospaced))
+                        .foregroundStyle(iceBlue.opacity(0.7))
+                        .multilineTextAlignment(.center)
+                }
+                .padding()
+            }
+            .background(
+                LinearGradient(
+                    colors: [
+                        Color(red: 0.05, green: 0.08, blue: 0.15),
+                        Color(red: 0.1, green: 0.15, blue: 0.25),
+                    ],
+                    startPoint: .top, endPoint: .bottom
+                )
+            )
+            .navigationTitle("Album")
+            .navigationBarTitleDisplayMode(.inline)
+            .toolbar {
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Done") { dismiss() }
+                        .foregroundStyle(iceAccent)
+                }
+            }
+            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+        }
+    }
 }
