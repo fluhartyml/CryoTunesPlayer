@@ -72,6 +72,12 @@ struct ContentView: View {
                                 Label("Play This Album", systemImage: "play.rectangle")
                             }
 
+                            Button {
+                                openAlbumInStore(for: song)
+                            } label: {
+                                Label("Open in iTunes Store", systemImage: "arrow.up.forward.app")
+                            }
+
                             if let url = song.url {
                                 ShareLink(item: url) {
                                     Label("Share Song", systemImage: "square.and.arrow.up")
@@ -437,6 +443,21 @@ struct ContentView: View {
                 }
             } catch {
                 print("Play album error: \(error)")
+            }
+        }
+    }
+
+    private func openAlbumInStore(for song: Song) {
+        Task {
+            do {
+                let detailedSong = try await song.with([.albums])
+                if let album = detailedSong.albums?.first, let url = album.url {
+                    await MainActor.run {
+                        UIApplication.shared.open(url)
+                    }
+                }
+            } catch {
+                print("Open in iTunes Store error: \(error)")
             }
         }
     }

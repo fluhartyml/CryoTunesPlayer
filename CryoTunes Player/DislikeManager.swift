@@ -5,6 +5,9 @@
 //  Per-station dislike tracking. When a user skips or thumbs-down a song,
 //  it's remembered for that station and auto-skipped next time.
 //
+//  State syncs across the user's devices via NSUbiquitousKeyValueStore
+//  (iCloud Key-Value Store). UserDefaults is kept as an offline cache.
+//
 
 import Foundation
 import MusicKit
@@ -19,9 +22,21 @@ final class DislikeManager {
     private(set) var lastDislike: (station: String, songID: String)?
 
     private let storageKey = "stationDislikes"
+    private let kvs = NSUbiquitousKeyValueStore.default
 
     init() {
         load()
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(cloudChanged(_:)),
+            name: NSUbiquitousKeyValueStore.didChangeExternallyNotification,
+            object: kvs
+        )
+        kvs.synchronize()
+    }
+
+    deinit {
+        NotificationCenter.default.removeObserver(self)
     }
 
     // MARK: - Public API
@@ -83,16 +98,31 @@ final class DislikeManager {
     // MARK: - Persistence
 
     private func save() {
-        // Convert Set<String> to [String] for JSON encoding
         let encodable = dislikes.mapValues { Array($0) }
-        if let data = try? JSONEncoder().encode(encodable) {
-            UserDefaults.standard.set(data, forKey: storageKey)
-        }
+        guard let data = try? JSONEncoder().encode(encodable) else { return }
+        UserDefaults.standard.set(data, forKey: storageKey)
+        kvs.set(data, forKey: storageKey)
+        kvs.synchronize()
     }
 
     private func load() {
+        if let cloudData = kvs.data(forKey: storageKey),
+           let decoded = try? JSONDecoder().decode([String: [String]].self, from: cloudData) {
+            dislikes = decoded.mapValues { Set($0) }
+            UserDefaults.standard.set(cloudData, forKey: storageKey)
+            return
+        }
         guard let data = UserDefaults.standard.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) else { return }
         dislikes = decoded.mapValues { Set($0) }
+    }
+
+    @objc private func cloudChanged(_ note: Notification) {
+        guard let data = kvs.data(forKey: storageKey),
+              let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) else { return }
+        Task { @MainActor in
+            dislikes = decoded.mapValues { Set($0) }
+            UserDefaults.standard.set(data, forKey: storageKey)
+        }
     }
 }
