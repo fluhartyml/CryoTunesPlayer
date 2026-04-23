@@ -44,5 +44,10 @@ struct CryoSleepTimerPicker: View {
                 selectedSleepTimerRaw = 0
             }
         }
+        .onAppear {
+            if player.sleepTimerEnd == nil {
+                selectedSleepTimerRaw = 0
+            }
+        }
     }
 }
