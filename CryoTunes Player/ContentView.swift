@@ -119,8 +119,6 @@ struct ContentView: View {
         .overlay(alignment: .center) {
             if shazamLoadingAlbum {
                 shazamLoadingOverlay
-            } else if !playerManager.errorMessage.isEmpty {
-                errorOverlay
             }
         }
         .onChange(of: shazamManager.matchedTitle) { _, newTitle in
@@ -573,31 +571,6 @@ struct ContentView: View {
         .transition(.opacity)
     }
 
-    private var errorOverlay: some View {
-        VStack(spacing: 8) {
-            Image(systemName: "wifi.exclamationmark")
-                .font(.system(size: 32))
-                .foregroundStyle(.red.opacity(0.7))
-
-            Text(playerManager.errorMessage)
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
-                .foregroundStyle(iceBorder)
-                .multilineTextAlignment(.center)
-        }
-        .padding(24)
-        .background(
-            RoundedRectangle(cornerRadius: 12)
-                .fill(iceDark.opacity(0.95))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 12)
-                        .strokeBorder(.red.opacity(0.3), lineWidth: 1)
-                )
-        )
-        .onTapGesture {
-            playerManager.errorMessage = ""
-        }
-        .transition(.opacity)
-    }
 }
 
 #Preview {
