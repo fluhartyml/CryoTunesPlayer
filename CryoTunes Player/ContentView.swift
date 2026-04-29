@@ -15,6 +15,7 @@ struct ContentView: View {
     @State private var weatherManager = CryoWeatherManager()
     @State private var dislikeManager = DislikeManager()
     @State private var playlistManager = PlaylistManager()
+    @State private var favoriteManager = FavoriteManager()
     @State private var showSettings = false
     @State private var showAlbumView = false
     @State private var selectedAlbum: Album?
@@ -483,6 +484,7 @@ struct ContentView: View {
             player: playerManager,
             dislikeManager: dislikeManager,
             playlistManager: playlistManager,
+            favoriteManager: favoriteManager,
             tint: iceBlue,
             accent: iceAccent,
             dark: iceDark,

@@ -13,6 +13,7 @@ struct CryoTransportControls: View {
     @Bindable var player: MusicPlaybackManager
     var dislikeManager: DislikeManager
     var playlistManager: PlaylistManager
+    var favoriteManager: FavoriteManager
     let tint: Color
     let accent: Color
     let dark: Color
@@ -139,6 +140,7 @@ struct CryoTransportControls: View {
                     await playlistManager.addToStationPlaylist(song, station: player.currentStation)
                 }
             } catch {}
+            try? await favoriteManager.favorite(songID: song.id.rawValue)
         }
     }
 
@@ -153,9 +155,12 @@ struct CryoTransportControls: View {
 
     /// Previous track undoes the last dislike if the undo window is still open
     private func skipBackWithUndo() {
-        if dislikeManager.lastDislike != nil {
+        if let lastSongID = dislikeManager.lastDislike?.songID {
             dislikeManager.undoLastDislike()
             ratingState = .none
+            Task {
+                try? await favoriteManager.favorite(songID: lastSongID)
+            }
         }
         player.skipBack()
     }
@@ -163,8 +168,11 @@ struct CryoTransportControls: View {
     /// Shared logic: dislike the current song on the current station, then skip
     private func recordDislikeAndSkip() {
         Task {
-            if let songID = currentSongID, player.currentStation != .none {
-                dislikeManager.dislike(songID: songID, on: player.currentStation)
+            if let songID = currentSongID {
+                if player.currentStation != .none {
+                    dislikeManager.dislike(songID: songID, on: player.currentStation)
+                }
+                try? await favoriteManager.unfavorite(songID: songID)
             }
             ratingState = .disliked
             player.skipForward()
