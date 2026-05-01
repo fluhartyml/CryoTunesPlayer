@@ -79,7 +79,7 @@ struct CryoStationPicker: View {
 
             if expandedCategories.contains(category) {
                 ForEach(MusicStationOption.stations(for: category).filter {
-                    $0 != .personalStation && $0 != .discoveryStation
+                    $0 != .personalStation && $0 != .discoveryStation && !$0.isHiddenInPicker
                 }, id: \.self) { station in
                     stationRow(station: station)
                 }
@@ -163,7 +163,7 @@ struct CryoStationPicker: View {
             }
 
             if expandedCategories.contains(.appleRadio) {
-                ForEach(AppleRadioBucket.allCases, id: \.self) { bucket in
+                ForEach(AppleRadioBucket.allCases.filter { !$0.visibleStations.isEmpty }, id: \.self) { bucket in
                     bucketPicker(bucket: bucket)
                 }
             }
@@ -203,7 +203,7 @@ struct CryoStationPicker: View {
             }
 
             if expandedBuckets.contains(bucket) {
-                ForEach(bucket.stations, id: \.self) { station in
+                ForEach(bucket.visibleStations, id: \.self) { station in
                     stationRow(station: station, indent: true)
                 }
             }

@@ -14,7 +14,6 @@ enum AppleRadioBucket: String, CaseIterable, Sendable {
     case genre = "Genre"
     case mood = "Mood"
     case artist = "Artist"
-    case terrestrial = "Terrestrial"
     case personal = "Personal"
 }
 
@@ -36,10 +35,6 @@ extension MusicStationOption {
         case .pinkFloydRadio, .tonyBennettRadio, .daftPunkRadio,
              .enyaRadio, .novaJazzersRadio, .enigmaRadio:
             return .artist
-        case .sunny991, .kroq, .kiis1027, .rock955, .lite1067,
-             .kEarth101, .wild949, .power1051, .q1043, .channel933,
-             .lite939, .theEnd1077:
-            return .terrestrial
         case .personalStation, .discoveryStation:
             return .personal
         default:
@@ -52,5 +47,30 @@ extension AppleRadioBucket {
     /// All stations in this bucket, in catalog declaration order.
     var stations: [MusicStationOption] {
         MusicStationOption.allCases.filter { $0.appleRadioBucket == self }
+    }
+
+    /// Stations in this bucket that aren't on the hidden-in-picker list.
+    var visibleStations: [MusicStationOption] {
+        stations.filter { !$0.isHiddenInPicker }
+    }
+}
+
+extension MusicStationOption {
+    /// Stations that don't reliably play via MusicKit's third-party API and
+    /// shouldn't surface in the picker UI. Data stays in CryoKit (catalog is
+    /// canonical); presentation layer filters here.
+    ///
+    /// Verified silently failing on real-device test 2026-05-01:
+    /// - Bossa Lounge Radio: ra.882820073 returns no station, name search dead
+    /// - My Personal Station: dynamic /v1/me/stations API returns empty
+    /// - Tibetan Singing Bowls: "satiro" album rotated out of Apple Music
+    static let hiddenInPicker: Set<MusicStationOption> = [
+        .bossaLoungeRadio,
+        .personalStation,
+        .tibetanSingingBowls
+    ]
+
+    var isHiddenInPicker: Bool {
+        Self.hiddenInPicker.contains(self)
     }
 }
