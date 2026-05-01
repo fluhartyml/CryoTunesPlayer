@@ -17,6 +17,7 @@ struct CryoStationPicker: View {
 
     @State private var expandedCategories: Set<StationCategory> = []
     @State private var expandedDecades: Set<BillboardDecade> = []
+    @State private var expandedBuckets: Set<AppleRadioBucket> = []
     @State private var asmrExpanded = false
     @State private var myMusicExpanded = false
     @State private var playlistsExpanded = false
@@ -32,6 +33,8 @@ struct CryoStationPicker: View {
             ForEach(StationCategory.allCases, id: \.self) { category in
                 if category == .billboard {
                     billboardCategoryPicker
+                } else if category == .appleRadio {
+                    appleRadioCategoryPicker
                 } else {
                     stationCategoryPicker(category: category)
                 }
@@ -120,6 +123,87 @@ struct CryoStationPicker: View {
 
             if asmrExpanded {
                 ForEach(MusicStationOption.asmrStations, id: \.self) { station in
+                    stationRow(station: station, indent: true)
+                }
+            }
+        }
+    }
+
+    // MARK: - Apple Radio (bucketed)
+
+    private var appleRadioCategoryPicker: some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    if expandedCategories.contains(.appleRadio) {
+                        expandedCategories.remove(.appleRadio)
+                    } else {
+                        expandedCategories.insert(.appleRadio)
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: expandedCategories.contains(.appleRadio) ? "chevron.down" : "chevron.right")
+                        .foregroundStyle(border)
+                        .frame(width: 20)
+
+                    Text(StationCategory.appleRadio.rawValue)
+                        .foregroundStyle(tint)
+
+                    Spacer()
+
+                    if !expandedCategories.contains(.appleRadio) &&
+                        player.currentStation.category == .appleRadio {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(accent)
+                    }
+                }
+                .padding(.vertical, 10)
+                .padding(.horizontal, 8)
+            }
+
+            if expandedCategories.contains(.appleRadio) {
+                ForEach(AppleRadioBucket.allCases, id: \.self) { bucket in
+                    bucketPicker(bucket: bucket)
+                }
+            }
+        }
+    }
+
+    private func bucketPicker(bucket: AppleRadioBucket) -> some View {
+        VStack(spacing: 0) {
+            Button {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    if expandedBuckets.contains(bucket) {
+                        expandedBuckets.remove(bucket)
+                    } else {
+                        expandedBuckets.insert(bucket)
+                    }
+                }
+            } label: {
+                HStack {
+                    Image(systemName: expandedBuckets.contains(bucket) ? "chevron.down" : "chevron.right")
+                        .foregroundStyle(border.opacity(0.7))
+                        .frame(width: 20)
+
+                    Text(bucket.rawValue)
+                        .foregroundStyle(accent)
+
+                    Spacer()
+
+                    if !expandedBuckets.contains(bucket) &&
+                        player.currentStation.appleRadioBucket == bucket {
+                        Image(systemName: "checkmark")
+                            .foregroundStyle(accent)
+                    }
+                }
+                .padding(.vertical, 8)
+                .padding(.leading, 28)
+                .padding(.trailing, 8)
+            }
+
+            if expandedBuckets.contains(bucket) {
+                ForEach(bucket.stations, id: \.self) { station in
                     stationRow(station: station, indent: true)
                 }
             }
