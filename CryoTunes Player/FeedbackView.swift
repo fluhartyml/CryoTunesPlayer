@@ -10,6 +10,7 @@ import MessageUI
 
 struct FeedbackView: View {
     let appName: String
+    var initialType: FeedbackType = .bug
     @Environment(\.dismiss) private var dismiss
     @State private var feedbackType: FeedbackType = .bug
     @State private var feedbackText = ""
@@ -24,6 +25,7 @@ struct FeedbackView: View {
     enum FeedbackType: String, CaseIterable {
         case bug = "Bug Report"
         case feature = "Feature Request"
+        case stationSuggestion = "Station Suggestion"
     }
 
     private var version: String {
@@ -80,9 +82,7 @@ struct FeedbackView: View {
                         .foregroundStyle(.white)
 
                     if feedbackText.isEmpty {
-                        Text(feedbackType == .bug
-                             ? "Describe what happened and what you expected..."
-                             : "Describe the feature you'd like to see...")
+                        Text(placeholderText)
                             .font(.system(size: 18, design: .monospaced))
                             .foregroundStyle(iceBorder.opacity(0.4))
                             .allowsHitTesting(false)
@@ -127,7 +127,7 @@ struct FeedbackView: View {
             .sheet(isPresented: $showingMailSheet) {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
-                    body: feedbackText + "\n\n" + deviceInfo,
+                    body: bracketedBody,
                     recipient: "michael.fluharty@mac.com"
                 )
             }
@@ -136,7 +136,55 @@ struct FeedbackView: View {
             } message: {
                 Text("Please configure a mail account in Settings, or email michael.fluharty@mac.com directly.")
             }
+            .onAppear {
+                feedbackType = initialType
+            }
         }
+    }
+
+    private var placeholderText: String {
+        switch feedbackType {
+        case .bug: return "Describe what happened and what you expected..."
+        case .feature: return "Describe the feature you'd like to see..."
+        case .stationSuggestion: return "What station would you like to hear?"
+        }
+    }
+
+    private var welcomingOpener: String {
+        switch feedbackType {
+        case .bug:
+            return """
+            Thank you for using CryoTunes Player and helping me make it
+            the best app it can be. Tell me what went wrong and I'll
+            see what I can do to fix it.
+            """
+        case .feature:
+            return """
+            Thank you for using CryoTunes Player and helping me make it
+            the best app it can be. Tell me about the feature you'd
+            like and I'll see what I can do.
+            """
+        case .stationSuggestion:
+            return """
+            Thank you for using CryoTunes Player and helping me make it
+            the best app it can be. Tell me what station you'd like to
+            hear and I'll see what I can do.
+            """
+        }
+    }
+
+    private var bracketedBody: String {
+        """
+        \(welcomingOpener)
+
+
+        \(feedbackText)
+
+
+        \(deviceInfo)
+
+        — Michael
+        """
     }
 }
 

@@ -17,6 +17,7 @@ struct SettingsView: View {
     var stationFailureMonitor: StationFailureMonitor
     @Environment(\.dismiss) private var dismiss
     @State private var showingFeedback = false
+    @State private var showingStationSuggestion = false
     @State private var showResetAllConfirm = false
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -195,6 +196,24 @@ struct SettingsView: View {
                             .font(.system(size: 18))
                     }
                     .foregroundStyle(iceBorder.opacity(0.5))
+                }
+                Divider().overlay(iceBorder.opacity(0.2))
+                Button {
+                    showingStationSuggestion = true
+                } label: {
+                    HStack(spacing: 4) {
+                        Image(systemName: "dot.radiowaves.left.and.right")
+                            .font(.system(size: 18))
+                        Text("Suggest a Station")
+                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                        Spacer()
+                        Image(systemName: "chevron.right")
+                            .font(.system(size: 18))
+                    }
+                    .foregroundStyle(iceAccent)
+                }
+                .sheet(isPresented: $showingStationSuggestion) {
+                    FeedbackView(appName: "CryoTunes Player", initialType: .stationSuggestion)
                 }
                 Divider().overlay(iceBorder.opacity(0.2))
                 Button {
