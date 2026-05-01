@@ -22,6 +22,9 @@ struct ContentView: View {
     @State private var shazamManager = ShazamManager()
     @State private var shazamLoadingAlbum = false
     @State private var showShazamNoMatchSheet = false
+    @State private var stationFailureMonitor = StationFailureMonitor()
+    @State private var reportForMail: StationReport?
+    @State private var showingFailureMailComposer = false
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -133,7 +136,35 @@ struct ContentView: View {
             showShazamNoMatchSheet = true
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(playerManager: playerManager, dislikeManager: dislikeManager)
+            SettingsView(playerManager: playerManager, dislikeManager: dislikeManager, stationFailureMonitor: stationFailureMonitor)
+        }
+        .alert("Couldn't load this station", isPresented: Binding(
+            get: { stationFailureMonitor.pendingReport != nil },
+            set: { isShowing in
+                if !isShowing { stationFailureMonitor.dismiss() }
+            }
+        )) {
+            Button("Send Report") {
+                reportForMail = stationFailureMonitor.pendingReport
+                stationFailureMonitor.dismiss()
+                showingFailureMailComposer = true
+            }
+            Button("Not Now", role: .cancel) {
+                stationFailureMonitor.dismiss()
+            }
+        } message: {
+            Text("Want to send a report so this station can be fixed?")
+        }
+        .sheet(isPresented: $showingFailureMailComposer, onDismiss: {
+            reportForMail = nil
+        }) {
+            if let report = reportForMail {
+                MailComposeView(
+                    subject: report.emailSubject,
+                    body: report.emailBody,
+                    recipient: "michael.fluharty@mac.com"
+                )
+            }
         }
         .sheet(isPresented: $showAlbumView) {
             if let album = selectedAlbum {

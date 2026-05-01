@@ -11,6 +11,7 @@ import CryoKit
 
 struct CryoStationPicker: View {
     @Bindable var player: MusicPlaybackManager
+    var stationFailureMonitor: StationFailureMonitor
     let tint: Color
     let accent: Color
     let border: Color
@@ -298,7 +299,7 @@ struct CryoStationPicker: View {
     private func stationRow(station: MusicStationOption, indent: Bool = false) -> some View {
         Button {
             Task {
-                await player.play(station: station)
+                await stationFailureMonitor.monitorPlay(station: station, player: player)
             }
         } label: {
             HStack {

@@ -14,6 +14,7 @@ import CryoKit
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlaybackManager
     var dislikeManager: DislikeManager
+    var stationFailureMonitor: StationFailureMonitor
     @Environment(\.dismiss) private var dismiss
     @State private var showingFeedback = false
     @State private var showResetAllConfirm = false
@@ -66,6 +67,7 @@ struct SettingsView: View {
         sectionContainer(title: "Stations") {
             CryoStationPicker(
                 player: playerManager,
+                stationFailureMonitor: stationFailureMonitor,
                 tint: iceBlue,
                 accent: iceAccent,
                 border: iceBorder
