@@ -28,6 +28,9 @@ struct CryoStationPicker: View {
     @State private var expandedPlaylistID: MusicItemID?
     @State private var revealedSongs: [Song] = []
     @State private var playlistTrackCounts: [MusicItemID: Int] = [:]
+    // Native Apple Music picker (iOS 27+). Gated at the call site.
+    @State private var showMusicPicker = false
+    @State private var pickedSongs: [Song] = []   // picker is multi-select; we play the first
 
     var body: some View {
         VStack(spacing: 0) {
@@ -319,6 +322,39 @@ struct CryoStationPicker: View {
 
     // MARK: - My Music
 
+    // Native Apple Music picker — full catalog + library in one Apple-provided
+    // sheet. iOS 27 only; on iOS 26 this row is hidden and My Music remains the
+    // path. No subscription required (library-only without one, +catalog with).
+    @available(iOS 27.0, *)
+    private var searchAppleMusicButton: some View {
+        Button {
+            showMusicPicker = true
+        } label: {
+            HStack(spacing: 8) {
+                Image(systemName: "magnifyingglass")
+                    .foregroundStyle(accent)
+                    .frame(width: 20)
+
+                Text("Search Apple Music")
+                    .foregroundStyle(tint)
+
+                Spacer()
+            }
+            .padding(.vertical, 10)
+            .padding(.leading, 28)
+            .padding(.trailing, 8)
+        }
+        .musicPicker(isPresented: $showMusicPicker, selection: $pickedSongs)
+        .onChange(of: showMusicPicker) { _, isShowing in
+            // Play the picked song only after the picker dismisses, so the picker's
+            // own preview-playback teardown can't stop us. The picker is multi-select
+            // (tap + to add); CryoTunes plays the first chosen song.
+            guard !isShowing, let song = pickedSongs.first else { return }
+            pickedSongs = []
+            Task { await player.playSong(song) }
+        }
+    }
+
     private var myMusicPicker: some View {
         VStack(spacing: 0) {
             Button {
@@ -348,6 +384,10 @@ struct CryoStationPicker: View {
             }
 
             if myMusicExpanded {
+                if #available(iOS 27.0, *) {
+                    searchAppleMusicButton
+                }
+
                 librarySubSection(
                     title: "Playlists",
                     count: player.libraryPlaylists.count,
