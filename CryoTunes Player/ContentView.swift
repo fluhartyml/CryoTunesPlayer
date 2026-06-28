@@ -8,7 +8,6 @@
 import SwiftUI
 import MusicKit
 import ShazamKit
-import CryoKit
 
 struct ContentView: View {
     @State private var playerManager = CryoPlayerHost.player

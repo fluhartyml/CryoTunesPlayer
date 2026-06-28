@@ -9,7 +9,6 @@ import SwiftUI
 import AVKit
 import MessageUI
 import MusicKit
-import CryoKit
 
 struct SettingsView: View {
     @Bindable var playerManager: MusicPlaybackManager

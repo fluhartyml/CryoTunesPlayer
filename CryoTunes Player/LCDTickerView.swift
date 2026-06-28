@@ -6,7 +6,6 @@
 //
 
 import SwiftUI
-import CryoKit
 
 struct LCDTickerView: View {
     let weatherManager: CryoWeatherManager

@@ -7,7 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AA000001CRYOKIT00000001 /* CryoKit in Frameworks */ = {isa = PBXBuildFile; productRef = AA000002CRYOKIT00000001 /* CryoKit */; };
 		C07CF3442FF1866200D3F410 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C07CF3432FF1866200D3F410 /* WidgetKit.framework */; };
 		C07CF3462FF1866200D3F410 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C07CF3452FF1866200D3F410 /* SwiftUI.framework */; };
 		C07CF3572FF1866300D3F410 /* CryoTunes Player WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C07CF3412FF1866200D3F410 /* CryoTunes Player WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
@@ -120,7 +119,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA000001CRYOKIT00000001 /* CryoKit in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -217,7 +215,6 @@
 			);
 			name = "CryoTunes Player";
 			packageProductDependencies = (
-				AA000002CRYOKIT00000001 /* CryoKit */,
 			);
 			productName = "CryoTunes Player";
 			productReference = C0E7AD4A2F7574E1008A8596 /* CryoTunes Player.app */;
@@ -305,7 +302,6 @@
 			mainGroup = C0E7AD412F7574E1008A8596;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				AA000003CRYOKIT00000001 /* XCRemoteSwiftPackageReference "CryoKit" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = C0E7AD4B2F7574E1008A8596 /* Products */;
@@ -864,24 +860,6 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCRemoteSwiftPackageReference section */
-		AA000003CRYOKIT00000001 /* XCRemoteSwiftPackageReference "CryoKit" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/fluhartyml/CryoKit";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		AA000002CRYOKIT00000001 /* CryoKit */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = AA000003CRYOKIT00000001 /* XCRemoteSwiftPackageReference "CryoKit" */;
-			productName = CryoKit;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = C0E7AD422F7574E1008A8596 /* Project object */;
 }

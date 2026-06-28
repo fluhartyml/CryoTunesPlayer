@@ -6,11 +6,40 @@
 // Created: 2026-03-26
 //
 // ============================================================
-// CURRENT STATUS (APR 02 2026)
+// CURRENT STATUS (JUN 28 2026 — v3.0 dev on the iOS 27 / Xcode 27 betas)
 // ============================================================
 //
-// v2.4 submitted APR 02 10:18 AM, waiting for review.
-// No further code changes needed. Waiting on Apple.
+// v3.0 in development. Today's session (all app-target only, no CryoKit edits):
+//   • Adaptive landscape — two-column layout (art | controls) whenever the
+//     available area is wider than tall (landscape phone, iPad, unfolded Fold).
+//     Geometry / aspect-ratio driven (NOT size classes — iPad mini reports a
+//     regular size class in both orientations); no hardcoded sizes; the album
+//     art is capped to available height so the LCD ticker can't clip off top.
+//   • iOS 27 native Music Picker — "Search Apple Music" row in My Music opens
+//     Apple's system musicPicker (full catalog + library). iOS 27-gated; on
+//     iOS 26 the row is hidden and My Music is unchanged. Selection binding is
+//     an array [Song]; plays the first chosen song after the picker dismisses.
+//     NOTE: Apple's picker selects via the + on a row — tapping the TITLE only
+//     previews. On-screen hint added so users know to tap + then the checkmark.
+//   • App Intents — Play Station / Play-Pause / Skip / Stop / Sleep Timer /
+//     What's Playing, surfaced to Siri, Shortcuts, Spotlight, Action Button,
+//     and Control Center (App Intents are iOS 16+, so they work on 26 AND 27).
+//     Shared player host (CryoPlayerHost) so intents + UI drive the same
+//     playback; "CryoTunes" registered as a Siri spoken alias.
+//     NOTE: Siri VOICE "play <station>" collides with Siri's built-in media
+//     handler (it treats the station as a search term) — the intents are
+//     reliable via TAP (Shortcuts / Action Button / Control Center), not always
+//     via Siri voice. Apple-side friction, not a CryoTunes bug.
+//   • Widget extension target added. Small interactive transport-controls
+//     widget (prev / play-pause / next) built via lightweight widget intents
+//     driving ApplicationMusicPlayer directly. Responsive ladder planned:
+//     small = controls → medium = + now-playing → large = + find-music /
+//     library playlists → extra-large (Fold, 4x6) = full page.
+//
+// KNOWN ISSUE (Apple, iOS 27 beta): MusicKit now-playing artwork returns nil —
+// album art shows the placeholder on iOS 27 but works fine on iOS 26. Confirmed
+// not a CryoTunes bug (same build, art shows on 26). Don't patch around it while
+// it's beta; watch for Apple to fix before the iOS 27 GM.
 //
 // CryoKit dependency: DIAMOND RULE in effect.
 // Claude may NOT remove, subtract, or modify code within CryoKit.
@@ -53,9 +82,12 @@
 //   [ ] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
 //   [ ] Dark/light automatic icon switching (iOS 18+)
 //   [ ] Additional color themes beyond ice blue
-//   [ ] Landscape mode
+//   [x] Landscape mode — adaptive two-column, Fold-ready (2026-06-28)
 //   [ ] iPad support
-//   [ ] Widget for home screen
+//   [~] Widget for home screen — small controls widget done; medium/large/
+//       extra-large (now-playing, find-music, playlists) in progress (2026-06-28)
+//   [x] iOS 27 native Music Picker — "Search Apple Music" in My Music (2026-06-28)
+//   [x] Siri / Shortcuts App Intents — play station, transport, sleep timer (2026-06-28)
 //   [ ] Easter egg (hidden interaction — tap title or idle screen)
 //   [ ] Queue position persistence (resume exact track on relaunch)
 //   [ ] Custom background image (z-ordering issue: image renders over UI — needs proper layer fix)
@@ -76,8 +108,8 @@
 // Category: Music
 // URL: https://apps.apple.com/us/app/cryotunes-player/id6761222456
 //
-// Current Version: 2.4 (build 2.5)
-// Status: Submitting for review
+// Current Version: 3.0 (build 1) — in development on iOS 27 / Xcode 27 betas
+// Status: Not yet submitted (v3.0 dev)
 //
 // Subtitle: Designed for iPad
 //
@@ -92,6 +124,12 @@
 //   genres, Billboard decade charts from 1958 to 2025, nature
 //   sounds, focus frequencies, and ASMR white noise — or browse
 //   your own music library with playlists, albums, and artists.
+//
+// What's New (v3.0):
+//   - Landscape: two-column layout that uses the full screen (Fold-ready)
+//   - Search Apple Music: pick from the full catalog right in My Music (iOS 27)
+//   - Siri & Shortcuts: play a station, transport, and sleep timer hands-free
+//   - Home Screen widget: play / pause / skip controls
 //
 // What's New (v2.4):
 //   - Playlist reveal: tap any playlist to see tracks
@@ -117,6 +155,7 @@
 //   v2.2 (2026-03-31) — CryoKit shared views, submitted
 //   v2.3 (2026-04-01) — Progress bar, next/prev track icons
 //   v2.4 (2026-04-02) — Playlist reveal, song counts, 18pt fonts
+//   v3.0 (2026-06-28) — Landscape, iOS 27 Music Picker, Siri/Shortcuts intents, controls widget (dev)
 //
 // ============================================================
 // SHAKEDOWN CHECKLIST — Complete before App Store submission
