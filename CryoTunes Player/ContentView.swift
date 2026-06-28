@@ -11,7 +11,7 @@ import ShazamKit
 import CryoKit
 
 struct ContentView: View {
-    @State private var playerManager = MusicPlaybackManager()
+    @State private var playerManager = CryoPlayerHost.player
     @State private var weatherManager = CryoWeatherManager()
     @State private var dislikeManager = DislikeManager()
     @State private var playlistManager = PlaylistManager()

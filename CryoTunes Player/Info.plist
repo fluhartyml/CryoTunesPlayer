@@ -12,5 +12,18 @@
 	<array>
 		<string>audio</string>
 	</array>
+	<key>INAlternativeAppNames</key>
+	<array>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>CryoTunes</string>
+			<key>INAlternativeAppNamePronunciationHint</key>
+			<string>cryo tunes</string>
+		</dict>
+		<dict>
+			<key>INAlternativeAppName</key>
+			<string>Cryo Tunes</string>
+		</dict>
+	</array>
 </dict>
 </plist>
