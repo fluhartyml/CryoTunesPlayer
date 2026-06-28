@@ -203,13 +203,18 @@ struct ContentView: View {
     @ViewBuilder
     private var adaptivePlayerBody: some View {
         if isWide {
-            HStack(alignment: .center, spacing: 24) {
-                albumArtSection
-                    .padding(.leading, 24)
-                    .frame(maxWidth: .infinity)
-                centerControls
-                    .frame(maxWidth: .infinity)
-                    .padding(.trailing, 16)
+            // Size the art to the remaining height (kept square), so a short
+            // landscape canvas can't push the LCD ticker off the top edge.
+            GeometryReader { geo in
+                HStack(alignment: .center, spacing: 24) {
+                    albumArtSection
+                        .frame(maxWidth: .infinity, maxHeight: geo.size.height)
+                        .padding(.leading, 24)
+                    centerControls
+                        .frame(maxWidth: .infinity)
+                        .padding(.trailing, 16)
+                }
+                .frame(width: geo.size.width, height: geo.size.height)
             }
             .padding(.top, 8)
         } else {
