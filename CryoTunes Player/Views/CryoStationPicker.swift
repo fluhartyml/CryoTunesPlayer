@@ -386,6 +386,15 @@ struct CryoStationPicker: View {
             if myMusicExpanded {
                 if #available(iOS 27.0, *) {
                     searchAppleMusicButton
+
+                    Text("Tap + to add a song, then ✓ to play. Tapping the title only previews.")
+                        .font(.system(size: 12))
+                        .foregroundStyle(border)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading, 28)
+                        .padding(.trailing, 12)
+                        .padding(.bottom, 8)
                 }
 
                 librarySubSection(
