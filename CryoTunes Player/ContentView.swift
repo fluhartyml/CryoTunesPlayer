@@ -33,6 +33,14 @@ struct ContentView: View {
     private let iceBorder = Color(red: 0.35, green: 0.55, blue: 0.75)
     private let iceAccent = Color(red: 0.5, green: 0.78, blue: 0.95)
 
+    // Resolution-independent layout signal: split into two columns whenever the
+    // available area is wider than it is tall (landscape phone, landscape iPad,
+    // an unfolded Fold), and stack when taller than wide (any portrait).
+    // Measured from real geometry, NOT size classes — size classes treat iPad
+    // portrait and landscape identically, the exact case the iPad mini hits.
+    // Aspect ratio is the true signal.
+    @State private var isWide = false
+
     var body: some View {
         ZStack {
             // Background
@@ -50,76 +58,19 @@ struct ContentView: View {
                     .padding(.horizontal, 16)
                     .padding(.bottom, 6)
 
-                Spacer()
-
-                // Album art — long press for album actions
-                albumArtView
-                    .padding(.horizontal, 32)
-                    .contextMenu {
-                        if let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
-                           case let .song(song) = entry.item {
-                            Button {
-                                openAlbumInApp(for: song)
-                            } label: {
-                                Label("Open Album", systemImage: "music.note.list")
-                            }
-
-                            Button {
-                                addAlbumToLibrary(for: song)
-                            } label: {
-                                Label("Add Album to Library", systemImage: "plus.rectangle.on.folder")
-                            }
-
-                            Button {
-                                playAlbum(for: song)
-                            } label: {
-                                Label("Play This Album", systemImage: "play.rectangle")
-                            }
-
-                            Button {
-                                openAlbumInStore(for: song)
-                            } label: {
-                                Label("Open in iTunes Store", systemImage: "arrow.up.forward.app")
-                            }
-
-                            if let url = song.url {
-                                ShareLink(item: url) {
-                                    Label("Share Song", systemImage: "square.and.arrow.up")
-                                }
-                            }
-                        }
-                    }
-
-                Spacer().frame(height: 20)
-
-                // Track info
-                trackInfoView
-
-                Spacer().frame(height: 6)
-
-                // Progress bar
-                progressBar
-                    .padding(.horizontal, 32)
-
-                Spacer().frame(height: 8)
-
-                // Sleep timer display
-                timerDisplay
-
-                Spacer().frame(height: 12)
-
-                // Transport controls
-                transportControls
-
-                Spacer().frame(height: 20)
-
-                // Station display
-                stationDisplay
-
-                Spacer()
+                adaptivePlayerBody
             }
             .padding(.bottom, 20)
         }
+        .background(
+            GeometryReader { geo in
+                Color.clear
+                    .onAppear { isWide = geo.size.width > geo.size.height }
+                    .onChange(of: geo.size) { _, newSize in
+                        isWide = newSize.width > newSize.height
+                    }
+            }
+        )
         .overlay(alignment: .center) {
             if shazamLoadingAlbum {
                 shazamLoadingOverlay
@@ -243,6 +194,94 @@ struct ContentView: View {
                     .foregroundStyle(iceBlue)
                     .frame(width: 44, height: 44)
             }
+        }
+    }
+
+    // MARK: - Adaptive Player Body
+
+    // Two-column when wide (landscape / iPad / unfolded Fold), stacked otherwise.
+    @ViewBuilder
+    private var adaptivePlayerBody: some View {
+        if isWide {
+            HStack(alignment: .center, spacing: 24) {
+                albumArtSection
+                    .padding(.leading, 24)
+                    .frame(maxWidth: .infinity)
+                centerControls
+                    .frame(maxWidth: .infinity)
+                    .padding(.trailing, 16)
+            }
+            .padding(.top, 8)
+        } else {
+            Spacer()
+            albumArtSection
+                .padding(.horizontal, 32)
+            Spacer().frame(height: 20)
+            centerControls
+            Spacer()
+        }
+    }
+
+    // Album art with its long-press context menu.
+    private var albumArtSection: some View {
+        albumArtView
+            .contextMenu {
+                if let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
+                   case let .song(song) = entry.item {
+                    Button {
+                        openAlbumInApp(for: song)
+                    } label: {
+                        Label("Open Album", systemImage: "music.note.list")
+                    }
+
+                    Button {
+                        addAlbumToLibrary(for: song)
+                    } label: {
+                        Label("Add Album to Library", systemImage: "plus.rectangle.on.folder")
+                    }
+
+                    Button {
+                        playAlbum(for: song)
+                    } label: {
+                        Label("Play This Album", systemImage: "play.rectangle")
+                    }
+
+                    Button {
+                        openAlbumInStore(for: song)
+                    } label: {
+                        Label("Open in iTunes Store", systemImage: "arrow.up.forward.app")
+                    }
+
+                    if let url = song.url {
+                        ShareLink(item: url) {
+                            Label("Share Song", systemImage: "square.and.arrow.up")
+                        }
+                    }
+                }
+            }
+    }
+
+    // Track info, progress, sleep timer, transport, and station readout.
+    private var centerControls: some View {
+        VStack(spacing: 0) {
+            trackInfoView
+
+            Spacer().frame(height: 6)
+
+            progressBar
+                .padding(.horizontal, 32)
+
+            Spacer().frame(height: 8)
+
+            timerDisplay
+
+            Spacer().frame(height: 12)
+
+            transportControls
+
+            Spacer().frame(height: 20)
+
+            stationDisplay
         }
     }
 
