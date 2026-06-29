@@ -7,19 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C07CF3442FF1866200D3F410 /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C07CF3432FF1866200D3F410 /* WidgetKit.framework */; };
-		C07CF3462FF1866200D3F410 /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C07CF3452FF1866200D3F410 /* SwiftUI.framework */; };
-		C07CF3572FF1866300D3F410 /* CryoTunes Player WidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = C07CF3412FF1866200D3F410 /* CryoTunes Player WidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		C07CF3552FF1866300D3F410 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = C0E7AD422F7574E1008A8596 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = C07CF3402FF1866200D3F410;
-			remoteInfo = "CryoTunes Player WidgetExtension";
-		};
 		C0E7AD5C2F7574E2008A8596 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = C0E7AD422F7574E1008A8596 /* Project object */;
@@ -37,36 +27,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		C07CF3582FF1866300D3F410 /* Embed Foundation Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				C07CF3572FF1866300D3F410 /* CryoTunes Player WidgetExtension.appex in Embed Foundation Extensions */,
-			);
-			name = "Embed Foundation Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C07CF3412FF1866200D3F410 /* CryoTunes Player WidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "CryoTunes Player WidgetExtension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
-		C07CF3432FF1866200D3F410 /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
-		C07CF3452FF1866200D3F410 /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
 		C0E7AD4A2F7574E1008A8596 /* CryoTunes Player.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "CryoTunes Player.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0E7AD5B2F7574E2008A8596 /* CryoTunes PlayerTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CryoTunes PlayerTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0E7AD652F7574E2008A8596 /* CryoTunes PlayerUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "CryoTunes PlayerUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		C07CF35C2FF1866300D3F410 /* Exceptions for "CryoTunes Player Widget" folder in "CryoTunes Player WidgetExtension" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				Info.plist,
-			);
-			target = C07CF3402FF1866200D3F410 /* CryoTunes Player WidgetExtension */;
-		};
 		C0E7AD6D2F7574E2008A8596 /* Exceptions for "CryoTunes Player" folder in "CryoTunes Player" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -77,14 +46,6 @@
 /* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		C07CF3472FF1866200D3F410 /* CryoTunes Player Widget */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				C07CF35C2FF1866300D3F410 /* Exceptions for "CryoTunes Player Widget" folder in "CryoTunes Player WidgetExtension" target */,
-			);
-			path = "CryoTunes Player Widget";
-			sourceTree = "<group>";
-		};
 		C0E7AD4C2F7574E1008A8596 /* CryoTunes Player */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
@@ -106,15 +67,6 @@
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		C07CF33E2FF1866200D3F410 /* Frameworks */ = {
-			isa = PBXFrameworksBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				C07CF3462FF1866200D3F410 /* SwiftUI.framework in Frameworks */,
-				C07CF3442FF1866200D3F410 /* WidgetKit.framework in Frameworks */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		C0E7AD472F7574E1008A8596 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -139,23 +91,12 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
-		C07CF3422FF1866200D3F410 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-				C07CF3432FF1866200D3F410 /* WidgetKit.framework */,
-				C07CF3452FF1866200D3F410 /* SwiftUI.framework */,
-			);
-			name = Frameworks;
-			sourceTree = "<group>";
-		};
 		C0E7AD412F7574E1008A8596 = {
 			isa = PBXGroup;
 			children = (
 				C0E7AD4C2F7574E1008A8596 /* CryoTunes Player */,
 				C0E7AD5E2F7574E2008A8596 /* CryoTunes PlayerTests */,
 				C0E7AD682F7574E2008A8596 /* CryoTunes PlayerUITests */,
-				C07CF3472FF1866200D3F410 /* CryoTunes Player Widget */,
-				C07CF3422FF1866200D3F410 /* Frameworks */,
 				C0E7AD4B2F7574E1008A8596 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -166,7 +107,6 @@
 				C0E7AD4A2F7574E1008A8596 /* CryoTunes Player.app */,
 				C0E7AD5B2F7574E2008A8596 /* CryoTunes PlayerTests.xctest */,
 				C0E7AD652F7574E2008A8596 /* CryoTunes PlayerUITests.xctest */,
-				C07CF3412FF1866200D3F410 /* CryoTunes Player WidgetExtension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -174,28 +114,6 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
-		C07CF3402FF1866200D3F410 /* CryoTunes Player WidgetExtension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = C07CF35B2FF1866300D3F410 /* Build configuration list for PBXNativeTarget "CryoTunes Player WidgetExtension" */;
-			buildPhases = (
-				C07CF33D2FF1866200D3F410 /* Sources */,
-				C07CF33E2FF1866200D3F410 /* Frameworks */,
-				C07CF33F2FF1866200D3F410 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			fileSystemSynchronizedGroups = (
-				C07CF3472FF1866200D3F410 /* CryoTunes Player Widget */,
-			);
-			name = "CryoTunes Player WidgetExtension";
-			packageProductDependencies = (
-			);
-			productName = "CryoTunes Player WidgetExtension";
-			productReference = C07CF3412FF1866200D3F410 /* CryoTunes Player WidgetExtension.appex */;
-			productType = "com.apple.product-type.app-extension";
-		};
 		C0E7AD492F7574E1008A8596 /* CryoTunes Player */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = C0E7AD6E2F7574E2008A8596 /* Build configuration list for PBXNativeTarget "CryoTunes Player" */;
@@ -203,12 +121,10 @@
 				C0E7AD462F7574E1008A8596 /* Sources */,
 				C0E7AD472F7574E1008A8596 /* Frameworks */,
 				C0E7AD482F7574E1008A8596 /* Resources */,
-				C07CF3582FF1866300D3F410 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				C07CF3562FF1866300D3F410 /* PBXTargetDependency */,
 			);
 			fileSystemSynchronizedGroups = (
 				C0E7AD4C2F7574E1008A8596 /* CryoTunes Player */,
@@ -276,9 +192,6 @@
 				LastSwiftUpdateCheck = 2700;
 				LastUpgradeCheck = 2630;
 				TargetAttributes = {
-					C07CF3402FF1866200D3F410 = {
-						CreatedOnToolsVersion = 27.0;
-					};
 					C0E7AD492F7574E1008A8596 = {
 						CreatedOnToolsVersion = 26.3;
 					};
@@ -311,19 +224,11 @@
 				C0E7AD492F7574E1008A8596 /* CryoTunes Player */,
 				C0E7AD5A2F7574E2008A8596 /* CryoTunes PlayerTests */,
 				C0E7AD642F7574E2008A8596 /* CryoTunes PlayerUITests */,
-				C07CF3402FF1866200D3F410 /* CryoTunes Player WidgetExtension */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
-		C07CF33F2FF1866200D3F410 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		C0E7AD482F7574E1008A8596 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -348,13 +253,6 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
-		C07CF33D2FF1866200D3F410 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		C0E7AD462F7574E1008A8596 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -379,11 +277,6 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
-		C07CF3562FF1866300D3F410 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = C07CF3402FF1866200D3F410 /* CryoTunes Player WidgetExtension */;
-			targetProxy = C07CF3552FF1866300D3F410 /* PBXContainerItemProxy */;
-		};
 		C0E7AD5D2F7574E2008A8596 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = C0E7AD492F7574E1008A8596 /* CryoTunes Player */;
@@ -397,71 +290,6 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
-		C07CF3592FF1866300D3F410 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3X3F6UJ44H;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "CryoTunes Player Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "CryoTunes Player Widget";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Tangerine.CryoTunesPlayer.CryoTunes-Player-Widget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-			};
-			name = Debug;
-		};
-		C07CF35A2FF1866300D3F410 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 3X3F6UJ44H;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "CryoTunes Player Widget/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "CryoTunes Player Widget";
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = "com.Tangerine.CryoTunesPlayer.CryoTunes-Player-Widget";
-				PRODUCT_NAME = "$(TARGET_NAME)";
-				SDKROOT = iphoneos;
-				SKIP_INSTALL = YES;
-				STRING_CATALOG_GENERATE_SYMBOLS = YES;
-				SWIFT_APPROACHABLE_CONCURRENCY = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_UPCOMING_FEATURE_MEMBER_IMPORT_VISIBILITY = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = "1,2";
-				VALIDATE_PRODUCT = YES;
-			};
-			name = Release;
-		};
 		C0E7AD6F2F7574E2008A8596 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -813,15 +641,6 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		C07CF35B2FF1866300D3F410 /* Build configuration list for PBXNativeTarget "CryoTunes Player WidgetExtension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				C07CF3592FF1866300D3F410 /* Debug */,
-				C07CF35A2FF1866300D3F410 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
 		C0E7AD452F7574E1008A8596 /* Build configuration list for PBXProject "CryoTunes Player" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
@@ -859,7 +678,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
 	};
 	rootObject = C0E7AD422F7574E1008A8596 /* Project object */;
 }
