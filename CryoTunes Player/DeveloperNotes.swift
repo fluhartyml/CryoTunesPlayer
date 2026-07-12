@@ -36,10 +36,14 @@
 //     small = controls → medium = + now-playing → large = + find-music /
 //     library playlists → extra-large (Fold, 4x6) = full page.
 //
-// KNOWN ISSUE (Apple, iOS 27 beta): MusicKit now-playing artwork returns nil —
-// album art shows the placeholder on iOS 27 but works fine on iOS 26. Confirmed
-// not a CryoTunes bug (same build, art shows on 26). Don't patch around it while
-// it's beta; watch for Apple to fix before the iOS 27 GM.
+// FIXED 2026-07-12 (iOS 27 beta now-playing artwork was blank):
+// The root cause was NOT nil artwork. entry.artwork IS present — the Open Album
+// sheet renders it perfectly via ArtworkImage (verified on-device, iPhone 16e /
+// iOS 27.0). The player FACE used entry.artwork.url() + AsyncImage, and on the
+// iOS 27 beta artwork.url() returns a "musickit://" URL that AsyncImage/URLSession
+// can't load, so the face fell back to the placeholder. Fix: render the Artwork
+// object directly via ArtworkImage (Apple's supported path) instead of resolving
+// a URL. See MusicPlaybackManager.currentArtwork + ContentView.albumArtView.
 //
 // CryoKit dependency: DIAMOND RULE in effect.
 // Claude may NOT remove, subtract, or modify code within CryoKit.

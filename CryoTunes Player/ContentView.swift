@@ -308,18 +308,16 @@ struct ContentView: View {
                         )
                 )
 
-            if let url = playerManager.currentArtworkURL {
-                AsyncImage(url: url) { phase in
-                    switch phase {
-                    case .success(let image):
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .clipShape(RoundedRectangle(cornerRadius: 6))
-                            .padding(4)
-                    default:
-                        artPlaceholder
-                    }
+            if let artwork = playerManager.currentArtwork {
+                // Render the MusicKit Artwork directly via ArtworkImage (the supported
+                // path). The old entry.artwork.url() + AsyncImage route returns a
+                // musickit:// URL that AsyncImage can't load on the iOS 27 beta.
+                GeometryReader { geo in
+                    ArtworkImage(artwork,
+                                 width: max(geo.size.width - 8, 0),
+                                 height: max(geo.size.height - 8, 0))
+                        .clipShape(RoundedRectangle(cornerRadius: 6))
+                        .frame(width: geo.size.width, height: geo.size.height)
                 }
             } else {
                 artPlaceholder

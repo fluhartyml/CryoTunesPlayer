@@ -38,6 +38,10 @@ public class MusicPlaybackManager {
     public var currentSongTitle = ""
     public var currentArtistName = ""
     public var currentArtworkURL: URL?
+    /// The now-playing entry's MusicKit Artwork object. Rendered via `ArtworkImage`
+    /// (the Apple-supported path) instead of resolving `.url()` + `AsyncImage`, which
+    /// returns a `musickit://` URL that fails to load on the iOS 27 beta.
+    public var currentArtwork: Artwork?
     public var sleepTimerEnd: Date?
     public var sleepTimerRemaining = ""
     public var isAuthorized = false
@@ -257,6 +261,7 @@ public class MusicPlaybackManager {
         currentSongTitle = ""
         currentArtistName = ""
         currentArtworkURL = nil
+        currentArtwork = nil
     }
 
     public func togglePlayPause() {
@@ -311,6 +316,7 @@ public class MusicPlaybackManager {
                 if let entry {
                     self.currentSongTitle = entry.title
                     self.currentArtistName = entry.subtitle ?? ""
+                    self.currentArtwork = entry.artwork
                     if let artwork = entry.artwork {
                         self.currentArtworkURL = artwork.url(width: 300, height: 300)
                     }
