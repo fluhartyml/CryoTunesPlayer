@@ -40,20 +40,20 @@ struct ContentView: View {
     // Aspect ratio is the true signal.
     @State private var isWide = false
 
-    // iPhone Duo CLOSED: the status icons (clock, Wi-Fi, battery) sit in a
-    // column down the right edge. Shazam and Settings move into that column,
-    // under the status icons. Closed is read from the hinge itself
-    // (UIHingeInteraction, iOS 27.1); the trailing inset gives the width.
-    @State private var hingeClosed = false
+    // iPhone Duo, open or closed: the status icons (clock, Wi-Fi, battery)
+    // sit in a column down the right edge. Shazam and Settings move into that
+    // column, under the status icons. A hinge (UIHingeInteraction, iOS 27.1)
+    // is what marks a Duo; the trailing inset gives the column width.
+    @State private var hasHinge = false
     @State private var sideColumn: CGFloat = 0
-    private var usesSideColumn: Bool { hingeClosed && sideColumn >= 44 }
+    private var usesSideColumn: Bool { hasHinge && sideColumn >= 44 }
 
     var body: some View {
         ZStack {
             // Background
             backgroundLayer
 
-            HingeReader(isClosed: $hingeClosed)
+            HingeReader(hasHinge: $hasHinge)
                 .frame(width: 0, height: 0)
 
             // Main player UI
@@ -741,18 +741,19 @@ struct ShazamNoMatchSheet: View {
 
 // MARK: - Hinge (iPhone Duo)
 
-// Reports whether the device's hinge is CLOSED. Uses UIHingeInteraction,
-// new in iOS 27.1; on 27.0 or a phone without a hinge it stays false.
+// Reports whether the device has a hinge (an iPhone Duo). Uses
+// UIHingeInteraction, new in iOS 27.1; on 27.0 or a phone without a hinge
+// it stays false.
 struct HingeReader: UIViewRepresentable {
-    @Binding var isClosed: Bool
+    @Binding var hasHinge: Bool
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
         view.isUserInteractionEnabled = false
         if #available(iOS 27.1, *) {
-            let binding = $isClosed
+            let binding = $hasHinge
             view.addInteraction(UIHingeInteraction { _, update in
-                binding.wrappedValue = update.hinge?.status == .closed
+                binding.wrappedValue = update.hinge != nil
             })
         }
         return view
