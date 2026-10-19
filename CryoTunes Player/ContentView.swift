@@ -40,10 +40,21 @@ struct ContentView: View {
     // Aspect ratio is the true signal.
     @State private var isWide = false
 
+    // iPhone Duo CLOSED: the status icons (clock, Wi-Fi, battery) sit in a
+    // column down the right edge. Shazam and Settings move into that column,
+    // under the status icons. Closed is read from the hinge itself
+    // (UIHingeInteraction, iOS 27.1); the trailing inset gives the width.
+    @State private var hingeClosed = false
+    @State private var sideColumn: CGFloat = 0
+    private var usesSideColumn: Bool { hingeClosed && sideColumn >= 44 }
+
     var body: some View {
         ZStack {
             // Background
             backgroundLayer
+
+            HingeReader(isClosed: $hingeClosed)
+                .frame(width: 0, height: 0)
 
             // Main player UI
             VStack(spacing: 0) {
@@ -64,12 +75,29 @@ struct ContentView: View {
         .background(
             GeometryReader { geo in
                 Color.clear
-                    .onAppear { isWide = geo.size.width > geo.size.height }
+                    .onAppear {
+                        isWide = geo.size.width > geo.size.height
+                        sideColumn = geo.safeAreaInsets.trailing
+                    }
                     .onChange(of: geo.size) { _, newSize in
                         isWide = newSize.width > newSize.height
                     }
+                    .onChange(of: geo.safeAreaInsets.trailing) { _, newInset in
+                        sideColumn = newInset
+                    }
             }
         )
+        .overlay(alignment: .topTrailing) {
+            if usesSideColumn {
+                VStack(spacing: 12) {
+                    shazamButton
+                    settingsButton
+                }
+                .frame(width: sideColumn)
+                .padding(.top, 72)
+                .ignoresSafeArea(edges: .trailing)
+            }
+        }
         .overlay(alignment: .center) {
             if shazamLoadingAlbum {
                 shazamLoadingOverlay
@@ -173,26 +201,34 @@ struct ContentView: View {
 
             Spacer()
 
-            // Shazam button
-            Button {
-                Task { await shazamManager.startListening() }
-            } label: {
-                Image(systemName: shazamManager.isListening ? "waveform" : "shazam.logo.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(shazamManager.isListening ? iceGlow : iceBlue)
-                    .symbolEffect(.pulse, isActive: shazamManager.isListening)
-                    .frame(width: 44, height: 44)
+            if !usesSideColumn {
+                shazamButton
+                    .padding(.trailing, 8)
+                settingsButton
             }
-            .padding(.trailing, 8)
+        }
+    }
 
-            Button {
-                showSettings = true
-            } label: {
-                Image(systemName: "gearshape.fill")
-                    .font(.system(size: 28))
-                    .foregroundStyle(iceBlue)
-                    .frame(width: 44, height: 44)
-            }
+    private var shazamButton: some View {
+        Button {
+            Task { await shazamManager.startListening() }
+        } label: {
+            Image(systemName: shazamManager.isListening ? "waveform" : "shazam.logo.fill")
+                .font(.system(size: 28))
+                .foregroundStyle(shazamManager.isListening ? iceGlow : iceBlue)
+                .symbolEffect(.pulse, isActive: shazamManager.isListening)
+                .frame(width: 44, height: 44)
+        }
+    }
+
+    private var settingsButton: some View {
+        Button {
+            showSettings = true
+        } label: {
+            Image(systemName: "gearshape.fill")
+                .font(.system(size: 28))
+                .foregroundStyle(iceBlue)
+                .frame(width: 44, height: 44)
         }
     }
 
@@ -701,4 +737,26 @@ struct ShazamNoMatchSheet: View {
             .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         }
     }
+}
+
+// MARK: - Hinge (iPhone Duo)
+
+// Reports whether the device's hinge is CLOSED. Uses UIHingeInteraction,
+// new in iOS 27.1; on 27.0 or a phone without a hinge it stays false.
+struct HingeReader: UIViewRepresentable {
+    @Binding var isClosed: Bool
+
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView()
+        view.isUserInteractionEnabled = false
+        if #available(iOS 27.1, *) {
+            let binding = $isClosed
+            view.addInteraction(UIHingeInteraction { _, update in
+                binding.wrappedValue = update.hinge?.status == .closed
+            })
+        }
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
 }
