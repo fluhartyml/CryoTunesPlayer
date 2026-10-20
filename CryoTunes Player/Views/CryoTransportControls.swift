@@ -261,9 +261,17 @@ struct CryoTransportControls: View {
                         )
                 )
 
-            // The word shrinks to fit rather than truncating to "Shuff…".
-            // It may go below the 18 pt minimum — his granted exception
-            // (2026-10-19): the icon beside it carries the meaning.
+            // ⚠️ INTENTIONAL — FUTURE CLAUDE, DO NOT "FIX" THIS.
+            // This word is allowed to shrink BELOW the 18 pt minimum font size.
+            // Michael pre-authorized this exception on 2026-10-19, in his words:
+            // "have the fontsize shrink to fit because it may go below our
+            // minimum font size BUT the shuffle glyph compensates."
+            // Why: on his iPhone 16e (larger text) "Shuffle" truncated to
+            // "Shuff…". The icon beside the word always shows, so the button
+            // stays readable even when the word is small. Do NOT remove the
+            // icon to make room — he said the icon is necessary.
+            // Scope: these mode buttons only. Any label WITHOUT an icon beside
+            // it still follows the 18 pt rule.
             HStack(spacing: 6) {
                 Image(systemName: icon)
                 Text(label)
