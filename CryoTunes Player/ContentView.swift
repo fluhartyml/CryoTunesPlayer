@@ -46,17 +46,34 @@ struct ContentView: View {
     // is what marks a Duo; the trailing inset gives the column width.
     // Duo upright (status bar across the top): they sit in the top strip,
     // just left of the clock.
+    // Duo partly open with the fold across the middle (laptop pose): art on
+    // the top half, the track box on the fold, controls on the bottom half.
+    // Regular iPhone sideways: they move to the right-edge column — gear
+    // above the notch and Shazam below it when the notch is on the right,
+    // stacked at the top when the right edge is clear.
     @State private var hasHinge = false
+    @State private var hingePartlyOpen = false
     @State private var sideColumn: CGFloat = 0
+    @State private var screenHeight: CGFloat = 0
+    @State private var notchOnRight = false
     private var usesSideColumn: Bool { hasHinge && sideColumn >= 44 }
     private var usesTopStrip: Bool { hasHinge && !usesSideColumn }
+    private var usesPhoneColumn: Bool { !hasHinge && isWide && sideColumn >= 44 }
+    private var usesFoldLayout: Bool { hasHinge && hingePartlyOpen && !isWide }
+
+    // Interface .landscapeLeft = home side on the left, so the notch (top of
+    // the phone) is on the right — UIOrientation.h.
+    private func readNotchSide() {
+        let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
+        notchOnRight = scene?.effectiveGeometry.interfaceOrientation == .landscapeLeft
+    }
 
     var body: some View {
         ZStack {
             // Background
             backgroundLayer
 
-            HingeReader(hasHinge: $hasHinge)
+            HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen)
                 .frame(width: 0, height: 0)
 
             // Main player UI
@@ -81,9 +98,13 @@ struct ContentView: View {
                     .onAppear {
                         isWide = geo.size.width > geo.size.height
                         sideColumn = geo.safeAreaInsets.trailing
+                        screenHeight = geo.frame(in: .global).maxY + geo.safeAreaInsets.bottom
+                        readNotchSide()
                     }
                     .onChange(of: geo.size) { _, newSize in
                         isWide = newSize.width > newSize.height
+                        screenHeight = geo.frame(in: .global).maxY + geo.safeAreaInsets.bottom
+                        readNotchSide()
                     }
                     .onChange(of: geo.safeAreaInsets.trailing) { _, newInset in
                         sideColumn = newInset
@@ -110,6 +131,22 @@ struct ContentView: View {
                 .padding(.trailing, 140)
                 .padding(.top, 22)
                 .ignoresSafeArea(edges: [.top, .trailing])
+            } else if usesPhoneColumn {
+                VStack(spacing: 12) {
+                    if notchOnRight {
+                        settingsButton
+                        Spacer()
+                        shazamButton
+                    } else {
+                        shazamButton
+                        settingsButton
+                        Spacer()
+                    }
+                }
+                .padding(.vertical, 8)
+                .frame(width: sideColumn)
+                .frame(maxHeight: .infinity)
+                .ignoresSafeArea(edges: .trailing)
             }
         }
         .overlay(alignment: .center) {
@@ -215,7 +252,7 @@ struct ContentView: View {
 
             Spacer()
 
-            if !usesSideColumn && !usesTopStrip {
+            if !usesSideColumn && !usesTopStrip && !usesPhoneColumn {
                 shazamButton
                     .padding(.trailing, 8)
                 settingsButton
@@ -251,7 +288,9 @@ struct ContentView: View {
     // Two-column when wide (landscape / iPad / unfolded Fold), stacked otherwise.
     @ViewBuilder
     private var adaptivePlayerBody: some View {
-        if isWide {
+        if usesFoldLayout {
+            foldBody
+        } else if isWide {
             // Size the art to the remaining height (kept square), so a short
             // landscape canvas can't push the LCD ticker off the top edge.
             GeometryReader { geo in
@@ -273,6 +312,35 @@ struct ContentView: View {
             Spacer().frame(height: 20)
             centerControls
             Spacer()
+        }
+    }
+
+    // Duo partly open, fold across the middle of the screen: art above the
+    // fold, the track box centred on it, the controls below it.
+    private var foldBody: some View {
+        GeometryReader { geo in
+            let fold = screenHeight / 2 - geo.frame(in: .global).minY
+            ZStack(alignment: .top) {
+                albumArtSection
+                    .frame(maxWidth: .infinity, maxHeight: max(0, fold - 52))
+                    .padding(.horizontal, 32)
+
+                trackInfoView
+                    .position(x: geo.size.width / 2, y: fold)
+
+                VStack(spacing: 0) {
+                    progressBar
+                        .padding(.horizontal, 32)
+                    Spacer().frame(height: 8)
+                    timerDisplay
+                    Spacer().frame(height: 12)
+                    transportControls
+                    Spacer().frame(height: 20)
+                    stationDisplay
+                }
+                .padding(.top, max(0, fold + 44))
+            }
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .top)
         }
     }
 
@@ -755,19 +823,22 @@ struct ShazamNoMatchSheet: View {
 
 // MARK: - Hinge (iPhone Duo)
 
-// Reports whether the device has a hinge (an iPhone Duo). Uses
-// UIHingeInteraction, new in iOS 27.1; on 27.0 or a phone without a hinge
-// it stays false.
+// Reports whether the device has a hinge (an iPhone Duo), and whether it
+// is partly open. Uses UIHingeInteraction, new in iOS 27.1; on 27.0 or a
+// phone without a hinge both stay false.
 struct HingeReader: UIViewRepresentable {
     @Binding var hasHinge: Bool
+    @Binding var partlyOpen: Bool
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
         view.isUserInteractionEnabled = false
         if #available(iOS 27.1, *) {
-            let binding = $hasHinge
+            let hinged = $hasHinge
+            let partly = $partlyOpen
             view.addInteraction(UIHingeInteraction { _, update in
-                binding.wrappedValue = update.hinge != nil
+                hinged.wrappedValue = update.hinge != nil
+                partly.wrappedValue = update.hinge?.status == .partiallyOpen
             })
         }
         return view
