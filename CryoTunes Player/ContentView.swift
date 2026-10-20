@@ -44,9 +44,12 @@ struct ContentView: View {
     // sit in a column down the right edge. Shazam and Settings move into that
     // column, under the status icons. A hinge (UIHingeInteraction, iOS 27.1)
     // is what marks a Duo; the trailing inset gives the column width.
+    // Duo upright (status bar across the top): they sit in the top strip,
+    // just left of the clock.
     @State private var hasHinge = false
     @State private var sideColumn: CGFloat = 0
     private var usesSideColumn: Bool { hasHinge && sideColumn >= 44 }
+    private var usesTopStrip: Bool { hasHinge && !usesSideColumn }
 
     var body: some View {
         ZStack {
@@ -96,6 +99,17 @@ struct ContentView: View {
                 .frame(width: sideColumn)
                 .padding(.top, 72)
                 .ignoresSafeArea(edges: .trailing)
+            } else if usesTopStrip {
+                // Measured on the Duo simulator, open: the clock starts about
+                // 130 pt in from the right edge; the status row is centred
+                // about 44 pt down.
+                HStack(spacing: 8) {
+                    shazamButton
+                    settingsButton
+                }
+                .padding(.trailing, 140)
+                .padding(.top, 22)
+                .ignoresSafeArea(edges: [.top, .trailing])
             }
         }
         .overlay(alignment: .center) {
@@ -201,7 +215,7 @@ struct ContentView: View {
 
             Spacer()
 
-            if !usesSideColumn {
+            if !usesSideColumn && !usesTopStrip {
                 shazamButton
                     .padding(.trailing, 8)
                 settingsButton
