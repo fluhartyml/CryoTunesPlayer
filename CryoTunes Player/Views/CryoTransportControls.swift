@@ -261,16 +261,14 @@ struct CryoTransportControls: View {
                         )
                 )
 
-            // Icon + word when it fits; icon alone when it doesn't. The text
-            // never shrinks (18 pt minimum), and never truncates to "Shuff…".
-            ViewThatFits(in: .horizontal) {
-                HStack(spacing: 6) {
-                    Image(systemName: icon)
-                    Text(label)
-                        .lineLimit(1)
-                        .fixedSize()
-                }
+            // The word shrinks to fit rather than truncating to "Shuff…".
+            // It may go below the 18 pt minimum — his granted exception
+            // (2026-10-19): the icon beside it carries the meaning.
+            HStack(spacing: 6) {
                 Image(systemName: icon)
+                Text(label)
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
             }
             .foregroundStyle(isActive ? tint : accent.opacity(0.5))
             .shadow(color: isActive ? glow.opacity(0.4) : .clear, radius: 3)
