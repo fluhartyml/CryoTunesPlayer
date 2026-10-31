@@ -230,3 +230,7 @@
 //   [ ] Upload to App Store Connect succeeds
 //
 // ============================================================
+
+// ============================================================
+// CONTACT THE DEVELOPER — NEXT UPDATE (his standard for all apps, 2026-09-18): the feedback form must send ONLY the user's message + the app version. Remove device model, OS, storage, locale and any other diagnostics. His words: "i dont want personal information. i just want a pipeline to communicate with users."
+// ============================================================
