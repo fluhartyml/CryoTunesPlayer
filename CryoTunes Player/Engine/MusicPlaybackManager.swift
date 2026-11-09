@@ -133,6 +133,24 @@ public class MusicPlaybackManager {
                 if let result = try await playPersonalStation() {
                     name = result
                 }
+            } else if station.decade != nil {
+                // REM  YEAR CHANNELS PLAY ONLY THEIR OWN YEAR — TestFlight 3.0.2 (76), iPad Pro, ~Nov 5: "Y2K error, its got
+                // REM  1996 mixed up with 2026." Cause: the channel played Apple Music's first hit for "pop hits 1996", sight
+                // REM  unseen. Fix, his yes 2026-11-06 (amber A-180): ask for the top 25 and play only a playlist whose name
+                // REM  holds the channel's year as a whole number ("2026" never matches "1996"). None → the channel says so
+                // REM  instead of playing the wrong year. No station fallback: a station's name carries no year to check.
+                let year = station.rawValue
+                if let result = try await searchPlaylist(term: term, year: year) {
+                    name = result
+                } else {
+                    player.stop()
+                    await MainActor.run {
+                        currentStation = station
+                        nowPlayingTitle = "No \(year) playlist on Apple Music right now"
+                        isPlaying = false
+                    }
+                    return
+                }
             } else {
                 switch station.searchType {
                 case .stationByID:
@@ -240,6 +258,30 @@ public class MusicPlaybackManager {
         try await player.prepareToPlay()
         try await player.play()
         return playlist.name
+    }
+
+    /// Year channels (A-180): the first of Apple's top 25 playlists whose name has `year` as a whole number.
+    private func searchPlaylist(term: String, year: String) async throws -> String? {
+        var request = MusicCatalogSearchRequest(term: term, types: [Playlist.self])
+        request.limit = 25
+        let response = try await request.response()
+        guard let playlist = response.playlists.first(where: { Self.names(year, in: $0.name) }) else { return nil }
+        player.queue = [playlist]
+        try await player.prepareToPlay()
+        try await player.play()
+        return playlist.name
+    }
+
+    /// True when `text` holds `year` with no digit right before or after it — "Hits of 1996" yes, "19961" or "2026" no.
+    nonisolated static func names(_ year: String, in text: String) -> Bool {
+        var from = text.startIndex
+        while let hit = text.range(of: year, range: from..<text.endIndex) {
+            let before = hit.lowerBound == text.startIndex ? nil : text[text.index(before: hit.lowerBound)]
+            let after = hit.upperBound == text.endIndex ? nil : text[hit.upperBound]
+            if !(before?.isNumber ?? false), !(after?.isNumber ?? false) { return true }
+            from = text.index(after: hit.lowerBound)
+        }
+        return false
     }
 
     private func searchAlbum(term: String) async throws -> String? {
