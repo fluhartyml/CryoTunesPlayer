@@ -154,6 +154,8 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
     case billboard2023 = "2023"
     case billboard2024 = "2024"
     case billboard2025 = "2025"
+    // REM: amber B-180 (his yes 2026-11-06): "A 2026 channel is added too, since today's stop at 2025."
+    case billboard2026 = "2026"
 
     // Nature sounds
     case infiniteRain = "Infinite Rain"
@@ -243,7 +245,7 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
              .billboard2010, .billboard2011, .billboard2012, .billboard2013, .billboard2014,
              .billboard2015, .billboard2016, .billboard2017, .billboard2018, .billboard2019,
              .billboard2020, .billboard2021, .billboard2022, .billboard2023, .billboard2024,
-             .billboard2025:
+             .billboard2025, .billboard2026:
             return .billboard
         case .infiniteRain, .forestSounds, .babblingBrook, .tropicalThunderstorm,
              .oceanWavesThunder, .waterfallAndRain, .tibetanMonksOm,
@@ -345,7 +347,7 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
              .billboard2010, .billboard2011, .billboard2012, .billboard2013, .billboard2014,
              .billboard2015, .billboard2016, .billboard2017, .billboard2018, .billboard2019,
              .billboard2020, .billboard2021, .billboard2022, .billboard2023, .billboard2024,
-             .billboard2025:
+             .billboard2025, .billboard2026:
             return .billboard
         case .infiniteRain, .forestSounds, .babblingBrook, .tropicalThunderstorm,
              .oceanWavesThunder, .waterfallAndRain, .tibetanMonksOm,
@@ -442,6 +444,7 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
         case .billboard2023: return "pop hits 2023"
         case .billboard2024: return "pop hits 2024"
         case .billboard2025: return "pop hits 2025"
+        case .billboard2026: return "pop hits 2026"
         case .infiniteRain: return "infinite rain"
         case .forestSounds: return "forest sounds apple music wellbeing"
         case .babblingBrook: return "babbling brook nature sounds nature sound collection"
@@ -526,7 +529,7 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
              .billboard2010, .billboard2011, .billboard2012, .billboard2013, .billboard2014,
              .billboard2015, .billboard2016, .billboard2017, .billboard2018, .billboard2019,
              .billboard2020, .billboard2021, .billboard2022, .billboard2023, .billboard2024,
-             .billboard2025:
+             .billboard2025, .billboard2026:
             return .playlistFirst
         case .babblingBrook, .tropicalThunderstorm, .oceanWavesThunder,
              .waterfallAndRain, .tibetanMonksOm, .tibetanSingingBowls,
@@ -554,7 +557,7 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
         case .billboard2010, .billboard2011, .billboard2012, .billboard2013, .billboard2014,
              .billboard2015, .billboard2016, .billboard2017, .billboard2018, .billboard2019: return .d2010s
         case .billboard2020, .billboard2021, .billboard2022, .billboard2023, .billboard2024,
-             .billboard2025: return .d2020s
+             .billboard2025, .billboard2026: return .d2020s
         default: return nil
         }
     }
