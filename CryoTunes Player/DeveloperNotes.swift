@@ -5,6 +5,17 @@
 // License: GPL v3
 // Created: 2026-03-26
 //
+// ############################################################
+// ⚠️⚠️⚠️  REM: TO DO NEXT TIME WE WORK ON CRYOTUNES — ADD CARPLAY  ⚠️⚠️⚠️
+// ############################################################
+// REM: His word 2026-11-13 18:4x: "cryotunes should have this" — the home pad
+// REM: that just came out has no App Store of its own and runs third-party apps
+// REM: through CarPlay (his report; Claude couldn't confirm it, it's past Claude's
+// REM: knowledge). So CryoTunes needs a CarPlay audio app (CarPlay templates +
+// REM: the CarPlay audio entitlement) to appear there and in cars. Not started.
+// REM: Raise it with him FIRST when a CryoTunes session opens; build only on his yes.
+// ############################################################
+//
 // ============================================================
 // CURRENT STATUS (JUN 28 2026 — v3.0 dev on the iOS 27 / Xcode 27 betas)
 // ============================================================
