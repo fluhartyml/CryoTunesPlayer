@@ -53,6 +53,10 @@ struct ContentView: View {
     // stacked at the top when the right edge is clear.
     @State private var hasHinge = false
     @State private var hingePartlyOpen = false
+    @State private var hingeAngle: CGFloat?
+    /// His word 11-18: reflect the art on the lower screen when the Duo is "opened 90degrees or
+    /// less (accute angle)". No angle reported (unknown) → reflect whenever it's partly open.
+    private var reflectsArt: Bool { usesFoldLayout && (hingeAngle.map { $0 <= .pi / 2 + 0.05 } ?? true) }
     @State private var sideColumn: CGFloat = 0
     @State private var screenHeight: CGFloat = 0
     @State private var notchOnRight = false
@@ -64,7 +68,11 @@ struct ContentView: View {
     /// the screen edge to edge and everything else floats over it. His word, after his note
     /// "Album art is too small": "flood the top half of the screen with the album art and the
     /// other elements to float over the album art". The faux LCD stays as the retro touch.
-    private var floodsArt: Bool { !usesFoldLayout && !isWide }
+    /// Laptop pose (Duo partly open) floods too, and mirrors the art onto the lower screen —
+    /// his note 11-18 7:38 AM: "It should be full screen with reflections on the keyboard (lower
+    /// half)", and in chat: "the album art should reflect on the other screen netflix and video
+    /// streamers do this".
+    private var floodsArt: Bool { !isWide }
 
     // Interface .landscapeLeft = home side on the left, so the notch (top of
     // the phone) is on the right — UIOrientation.h.
@@ -80,7 +88,7 @@ struct ContentView: View {
 
             if floodsArt { floodArtLayer }
 
-            HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen)
+            HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen, angle: $hingeAngle)
                 .frame(width: 0, height: 0)
 
             // Main player UI
@@ -336,10 +344,7 @@ struct ContentView: View {
         GeometryReader { geo in
             let fold = screenHeight / 2 - geo.frame(in: .global).minY
             ZStack(alignment: .top) {
-                albumArtSection
-                    .frame(maxWidth: .infinity, maxHeight: max(0, fold - 52))
-                    .padding(.horizontal, 32)
-
+                // REM 2026-11-18 — the art is floodArtLayer now (top screen + reflection below).
                 trackInfoView
                     .position(x: geo.size.width / 2, y: fold)
 
@@ -407,6 +412,21 @@ struct ContentView: View {
     private var floodArtLayer: some View {
         GeometryReader { g in
             let w = g.size.width, h = g.size.height * 0.5
+            ZStack(alignment: .top) {
+            if reflectsArt {
+                // The lower screen: the art flipped like a reflection on a glossy desk, blurred and
+                // dimmed so the controls on it stay readable, fading out toward the bottom edge.
+                floodArt(width: w, height: h)
+                    .frame(width: w, height: h)
+                    .clipped()
+                    .scaleEffect(x: 1, y: -1)
+                    .blur(radius: 18)
+                    .opacity(0.45)
+                    .mask(LinearGradient(colors: [.black, .clear], startPoint: .top, endPoint: .bottom))
+                    .offset(y: h)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+            }
             floodArt(width: w, height: h)
                 .frame(width: w, height: h)
                 .clipped()
@@ -415,14 +435,17 @@ struct ContentView: View {
                         .frame(height: 160)
                 }
                 .overlay(alignment: .bottom) {
+                    // Laptop pose: no fade — the art meets its reflection at the fold.
                     LinearGradient(colors: [.clear, Color(red: 0.08, green: 0.12, blue: 0.2)], startPoint: .top, endPoint: .bottom)
-                        .frame(height: 120)
+                        .frame(height: usesFoldLayout ? 0 : 120)
                 }
                 .contentShape(Rectangle())
                 .contextMenu { albumMenuItems }
                 .accessibilityLabel("Album art")
+            }
         }
-        .ignoresSafeArea(edges: .top)
+        // Whole screen, so "half" is the Duo's fold line in laptop pose.
+        .ignoresSafeArea()
     }
 
     @ViewBuilder
@@ -883,6 +906,9 @@ struct ShazamNoMatchSheet: View {
 struct HingeReader: UIViewRepresentable {
     @Binding var hasHinge: Bool
     @Binding var partlyOpen: Bool
+    /// REM 2026-11-18 — hinge angle in radians (UIHinge.angle). The SDK header gives no range;
+    /// Claude's assumption, NOT verified: 0 = closed, π/2 = an L, π = flat. Check on his Duo.
+    var angle: Binding<CGFloat?>? = nil
 
     func makeUIView(context: Context) -> UIView {
         let view = UIView()
@@ -890,9 +916,11 @@ struct HingeReader: UIViewRepresentable {
         if #available(iOS 27.1, *) {
             let hinged = $hasHinge
             let partly = $partlyOpen
+            let ang = angle
             view.addInteraction(UIHingeInteraction { _, update in
                 hinged.wrappedValue = update.hinge != nil
                 partly.wrappedValue = update.hinge?.status == .partiallyOpen
+                ang?.wrappedValue = update.hinge?.angle
             })
         }
         return view
