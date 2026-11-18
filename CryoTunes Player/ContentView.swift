@@ -24,6 +24,16 @@ struct ContentView: View {
     @State private var stationFailureMonitor = StationFailureMonitor()
     @State private var reportForMail: StationReport?
     @State private var showingFailureMailComposer = false
+    @State private var showSleepTimerSheet = false
+    @State private var fullWidth: CGFloat = 0
+
+    /// REM 2026-11-18 — big screens (iPad, the open Duo, a wide Mac window) get a side panel:
+    /// Sleep Timer on top, Stations under it, the player beside it. His word: "my iphone apps
+    /// look like they are just enlarged and not optomized for ipads or iphone duos", "it needs
+    /// the sleep timer", then "yes build it". Measured from the whole width, not size classes.
+    /// Laptop pose keeps its fold layout. Uses the hinge state (not isWide), because isWide
+    /// is measured inside the player and would flip when the panel appears.
+    private var usesSidePanel: Bool { fullWidth >= 700 && !(hasHinge && hingePartlyOpen) }
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -84,6 +94,8 @@ struct ContentView: View {
     }
 
     var body: some View {
+        HStack(spacing: 0) {
+        if usesSidePanel { sidePanel }
         ZStack {
             // Background
             backgroundLayer
@@ -128,6 +140,27 @@ struct ContentView: View {
                     }
             }
         )
+        }
+        .background(
+            GeometryReader { g in
+                Color.clear
+                    .onAppear { fullWidth = g.size.width }
+                    .onChange(of: g.size.width) { _, w in fullWidth = w }
+            }
+        )
+        .sheet(isPresented: $showSleepTimerSheet) {
+            VStack(alignment: .leading, spacing: 14) {
+                Text("SLEEP TIMER")
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundStyle(iceBorder)
+                    .tracking(1.5)
+                sleepTimerButtons
+                timerCountdown
+            }
+            .padding(20)
+            .presentationDetents([.height(190)])
+            .presentationBackground(Color(red: 0.06, green: 0.09, blue: 0.16))
+        }
         .overlay(alignment: .topTrailing) {
             if usesSideColumn {
                 VStack(spacing: 12) {
@@ -780,18 +813,80 @@ struct ContentView: View {
 
     // MARK: - Timer Display
 
+    /// REM 2026-11-18 — the moon on the player opens the sleep timer buttons (Off · 30m · 1h ·
+    /// 2h · 4h), so it no longer takes a trip into Settings. Dim "Sleep" when no timer runs.
     private var timerDisplay: some View {
-        HStack {
-            if !playerManager.sleepTimerRemaining.isEmpty {
-                Image(systemName: "moon.zzz.fill")
-                    .foregroundStyle(iceAccent.opacity(0.6))
-                    .font(.system(size: 12))
-                Text(playerManager.sleepTimerRemaining)
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
-                    .foregroundStyle(iceAccent.opacity(0.6))
-            }
+        Button { showSleepTimerSheet = true } label: {
+            timerCountdown
         }
-        .frame(height: 20)
+        .buttonStyle(.plain)
+        .accessibilityLabel("Sleep timer")
+    }
+
+    private var timerCountdown: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "moon.zzz.fill")
+                .font(.system(size: 18))
+            Text(playerManager.sleepTimerRemaining.isEmpty ? "Sleep" : playerManager.sleepTimerRemaining)
+                .font(.system(size: 18, weight: .medium, design: .monospaced))
+        }
+        .foregroundStyle(iceAccent.opacity(playerManager.sleepTimerRemaining.isEmpty ? 0.4 : 0.7))
+        .frame(height: 24)
+    }
+
+    private var sleepTimerButtons: some View {
+        CryoSleepTimerPicker(
+            player: playerManager,
+            tint: iceBlue,
+            accent: iceAccent,
+            dark: iceDark,
+            border: iceBorder
+        )
+    }
+
+    // MARK: - Side Panel (big screens)
+
+    private var sidePanel: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 22) {
+                panelSection("Sleep Timer") {
+                    sleepTimerButtons
+                    timerCountdown
+                        .padding(.top, 8)
+                }
+                panelSection("Stations") {
+                    CryoStationPicker(
+                        player: playerManager,
+                        stationFailureMonitor: stationFailureMonitor,
+                        tint: iceBlue,
+                        accent: iceAccent,
+                        border: iceBorder
+                    )
+                }
+            }
+            .padding(16)
+        }
+        .frame(width: 340)
+        .background(Color(red: 0.06, green: 0.09, blue: 0.16).ignoresSafeArea())
+        .overlay(alignment: .trailing) {
+            Rectangle().fill(iceBorder.opacity(0.25)).frame(width: 1).ignoresSafeArea()
+        }
+    }
+
+    private func panelSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            Text(title.uppercased())
+                .font(.system(size: 18, weight: .bold, design: .monospaced))
+                .foregroundStyle(iceBorder)
+                .tracking(1.5)
+            VStack(spacing: 0) { content() }
+                .padding(12)
+                .background(
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(Color.black.opacity(0.3))
+                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(iceBorder.opacity(0.2), lineWidth: 1))
+                )
+        }
     }
 
     // MARK: - Transport Controls
