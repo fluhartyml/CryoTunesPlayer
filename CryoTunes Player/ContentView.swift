@@ -306,12 +306,19 @@ struct ContentView: View {
             }
             .padding(.top, 8)
         } else {
-            Spacer()
+            // REM 2026-11-18 — the art takes the room FIRST. Two greedy Spacers were splitting
+            // the leftover height with it, so the square shrank to fit its third and left a
+            // band of empty screen below the controls. His TestFlight note (iPhone Duo, iOS
+            // 27.3, build 76, Nov 17 9:45 PM): "Album art is too small". Now it grows to the
+            // full width (less margins) or the height the controls leave, whichever is less,
+            // and the Spacers only center what is left over.
+            Spacer(minLength: 0)
             albumArtSection
-                .padding(.horizontal, 32)
+                .padding(.horizontal, 24)
+                .layoutPriority(1)
             Spacer().frame(height: 20)
             centerControls
-            Spacer()
+            Spacer(minLength: 0)
         }
     }
 
