@@ -60,6 +60,11 @@ struct ContentView: View {
     private var usesTopStrip: Bool { hasHinge && !usesSideColumn }
     private var usesPhoneColumn: Bool { !hasHinge && isWide && sideColumn >= 44 }
     private var usesFoldLayout: Bool { hasHinge && hingePartlyOpen && !isWide }
+    /// REM 2026-11-18 — portrait (not fold, not wide): the album art floods the top half of
+    /// the screen edge to edge and everything else floats over it. His word, after his note
+    /// "Album art is too small": "flood the top half of the screen with the album art and the
+    /// other elements to float over the album art". The faux LCD stays as the retro touch.
+    private var floodsArt: Bool { !usesFoldLayout && !isWide }
 
     // Interface .landscapeLeft = home side on the left, so the notch (top of
     // the phone) is on the right — UIOrientation.h.
@@ -72,6 +77,8 @@ struct ContentView: View {
         ZStack {
             // Background
             backgroundLayer
+
+            if floodsArt { floodArtLayer }
 
             HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen)
                 .frame(width: 0, height: 0)
@@ -312,13 +319,14 @@ struct ContentView: View {
             // 27.3, build 76, Nov 17 9:45 PM): "Album art is too small". Now it grows to the
             // full width (less margins) or the height the controls leave, whichever is less,
             // and the Spacers only center what is left over.
+            // REM 2026-11-18 — the art is now floodArtLayer behind everything (see floodsArt);
+            // the controls float over its lower edge on dark glass, pinned to the bottom, so
+            // on a shorter screen they ride up over the art instead of being squeezed.
             Spacer(minLength: 0)
-            albumArtSection
-                .padding(.horizontal, 24)
-                .layoutPriority(1)
-            Spacer().frame(height: 20)
             centerControls
-            Spacer(minLength: 0)
+                .padding(.vertical, 14)
+                .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+                .padding(.horizontal, 12)
         }
     }
 
@@ -354,7 +362,11 @@ struct ContentView: View {
     // Album art with its long-press context menu.
     private var albumArtSection: some View {
         albumArtView
-            .contextMenu {
+            .contextMenu { albumMenuItems }
+    }
+
+    /// The album art's long-press menu — shared by the framed art and the flooded art.
+    @ViewBuilder private var albumMenuItems: some View {
                 if let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
                    case let .song(song) = entry.item {
                     Button {
@@ -387,7 +399,42 @@ struct ContentView: View {
                         }
                     }
                 }
-            }
+    }
+
+    /// REM 2026-11-18 — the flooded art: full width, top half of the screen, under the status
+    /// bar. A dark fade at the top keeps the ticker readable over any cover; a fade at the bottom
+    /// melts it into the background. Long-press keeps the album menu.
+    private var floodArtLayer: some View {
+        GeometryReader { g in
+            let w = g.size.width, h = g.size.height * 0.5
+            floodArt(width: w, height: h)
+                .frame(width: w, height: h)
+                .clipped()
+                .overlay(alignment: .top) {
+                    LinearGradient(colors: [.black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 160)
+                }
+                .overlay(alignment: .bottom) {
+                    LinearGradient(colors: [.clear, Color(red: 0.08, green: 0.12, blue: 0.2)], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 120)
+                }
+                .contentShape(Rectangle())
+                .contextMenu { albumMenuItems }
+                .accessibilityLabel("Album art")
+        }
+        .ignoresSafeArea(edges: .top)
+    }
+
+    @ViewBuilder
+    private func floodArt(width w: CGFloat, height h: CGFloat) -> some View {
+        let side = max(w, h)
+        if let artwork = playerManager.currentArtwork {
+            ArtworkImage(artwork, width: side, height: side)
+        } else if let uiImage = UIImage(named: "AppIcon") {
+            Image(uiImage: uiImage).resizable().scaledToFill().frame(width: side, height: side)
+        } else {
+            Color(red: 0.08, green: 0.12, blue: 0.2)
+        }
     }
 
     // Track info, progress, sleep timer, transport, and station readout.
