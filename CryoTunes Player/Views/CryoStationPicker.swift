@@ -324,6 +324,9 @@ struct CryoStationPicker: View {
     // Native Apple Music picker — full catalog + library in one Apple-provided
     // sheet. iOS 27 only; on iOS 26 this row is hidden and My Music remains the
     // path. No subscription required (library-only without one, +catalog with).
+    // REM 11-18: Apple's musicPicker is "unavailable in macOS", so the Mac leaves
+    // this row out and My Music's playlists/albums are the path there.
+    #if os(iOS)
     @available(iOS 27.0, *)
     private var searchAppleMusicButton: some View {
         Button {
@@ -353,6 +356,7 @@ struct CryoStationPicker: View {
             Task { await player.playSong(song) }
         }
     }
+    #endif
 
     private var myMusicPicker: some View {
         VStack(spacing: 0) {
@@ -383,6 +387,7 @@ struct CryoStationPicker: View {
             }
 
             if myMusicExpanded {
+                #if os(iOS)
                 if #available(iOS 27.0, *) {
                     searchAppleMusicButton
 
@@ -395,6 +400,7 @@ struct CryoStationPicker: View {
                         .padding(.trailing, 12)
                         .padding(.bottom, 8)
                 }
+                #endif
 
                 librarySubSection(
                     title: "Playlists",

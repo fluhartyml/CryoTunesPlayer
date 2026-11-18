@@ -42,6 +42,8 @@ class ShazamManager: NSObject, SHSessionDelegate {
             matchedArtist = ""
         }
 
+        // REM 11-18: the Mac has no AVAudioSession; AVAudioEngine reads the mic directly.
+        #if os(iOS)
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.record, mode: .default)
@@ -51,6 +53,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             await MainActor.run { isListening = false }
             return
         }
+        #endif
 
         let inputNode = audioEngine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
@@ -83,8 +86,10 @@ class ShazamManager: NSObject, SHSessionDelegate {
         isListening = false
 
         // Restore playback audio session
+        #if os(iOS)
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         try? AVAudioSession.sharedInstance().setActive(true)
+        #endif
     }
 
     // MARK: - SHSessionDelegate
@@ -106,7 +111,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             let request = MusicCatalogResourceRequest<Song>(matching: \.id, equalTo: MusicItemID(appleMusicID))
             let response = try await request.response()
             guard let song = response.items.first else { return }
-            try await MusicLibrary.shared.add(song)
+            try await PlaylistManager.libraryAddSong(song)
             // Add to Shazamed Songs playlist
             await playlistManager?.addToShazamPlaylist(song)
             await MainActor.run { addedToLibrary = true }

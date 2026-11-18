@@ -7,7 +7,6 @@
 
 import SwiftUI
 import AVKit
-import MessageUI
 import MusicKit
 
 struct SettingsView: View {
@@ -49,14 +48,14 @@ struct SettingsView: View {
             }
             .background(Color(red: 0.06, green: 0.09, blue: 0.16))
             .navigationTitle("Settings")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
-                ToolbarItem(placement: .topBarTrailing) {
+                ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                         .foregroundStyle(iceBlue)
                 }
             }
-            .toolbarColorScheme(.dark, for: .navigationBar)
+            .darkNavigationBar()
         }
         .preferredColorScheme(.dark)
     }
@@ -263,6 +262,7 @@ struct SettingsView: View {
 
 // MARK: - AirPlay Button (UIKit bridge)
 
+#if os(iOS)
 struct AirPlayButton: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
         let routePickerView = AVRoutePickerView()
@@ -273,3 +273,19 @@ struct AirPlayButton: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
+#else
+// REM: Mac twin of the AirPlay picker (AVRoutePickerView is an NSView there).
+struct AirPlayButton: NSViewRepresentable {
+    func makeNSView(context: Context) -> NSView {
+        let routePickerView = AVRoutePickerView()
+        routePickerView.isRoutePickerButtonBordered = false
+        routePickerView.setRoutePickerButtonColor(
+            NSColor(red: 0.5, green: 0.78, blue: 0.95, alpha: 1.0), for: .normal)
+        routePickerView.setRoutePickerButtonColor(
+            NSColor(red: 0.65, green: 0.82, blue: 0.95, alpha: 1.0), for: .active)
+        return routePickerView
+    }
+
+    func updateNSView(_ nsView: NSView, context: Context) {}
+}
+#endif

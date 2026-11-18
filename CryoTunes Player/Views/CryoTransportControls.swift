@@ -103,6 +103,7 @@ struct CryoTransportControls: View {
                 }
                 .frame(maxWidth: .infinity)
 
+                #if os(iOS)
                 Button { showShareSheet = true } label: {
                     modeButton(
                         icon: "square.and.arrow.up",
@@ -111,13 +112,29 @@ struct CryoTransportControls: View {
                     )
                 }
                 .frame(maxWidth: .infinity)
+                #else
+                // REM: Mac — Apple's ShareLink opens the system share menu.
+                if let url = currentSongShareURL {
+                    ShareLink(item: url) {
+                        modeButton(icon: "square.and.arrow.up", label: "Share", isActive: false)
+                    }
+                    .buttonStyle(.plain)
+                    .frame(maxWidth: .infinity)
+                } else {
+                    modeButton(icon: "square.and.arrow.up", label: "Share", isActive: false)
+                        .opacity(0.5)
+                        .frame(maxWidth: .infinity)
+                }
+                #endif
             }
             .padding(.horizontal, 8)
+            #if os(iOS)
             .sheet(isPresented: $showShareSheet) {
                 if let url = currentSongShareURL {
                     ActivityView(activityItems: [url])
                 }
             }
+            #endif
         }
         .onChange(of: player.currentSongTitle) { _, _ in
             ratingState = .none
@@ -132,14 +149,18 @@ struct CryoTransportControls: View {
             guard let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
                   case let .song(song) = entry.item else { return }
             do {
-                try await MusicLibrary.shared.add(song)
+                try await PlaylistManager.libraryAddSong(song)
                 ratingState = .loved
                 // Add to per-station playlist
                 if player.currentStation != .none {
                     await playlistManager.addToStationPlaylist(song, station: player.currentStation)
                 }
             } catch {}
-            try? await favoriteManager.favorite(songID: song.id.rawValue)
+            // REM 11-18: on the Mac the library add above always throws (Apple has no
+            // library writes there), so Like lights up when the favorite lands instead.
+            if (try? await favoriteManager.favorite(songID: song.id.rawValue)) != nil {
+                ratingState = .loved
+            }
         }
     }
 
@@ -287,6 +308,7 @@ struct CryoTransportControls: View {
     }
 }
 
+#if os(iOS)
 struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
 
@@ -296,3 +318,4 @@ struct ActivityView: UIViewControllerRepresentable {
 
     func updateUIViewController(_ uiViewController: UIActivityViewController, context: Context) {}
 }
+#endif

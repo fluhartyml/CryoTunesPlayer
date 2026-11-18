@@ -6,7 +6,9 @@
 //
 
 import SwiftUI
+#if os(iOS)
 import MessageUI
+#endif
 
 struct FeedbackView: View {
     let appName: String
@@ -35,7 +37,6 @@ struct FeedbackView: View {
     }
 
     private var deviceInfo: String {
-        let device = UIDevice.current
         var sysinfo = utsname()
         uname(&sysinfo)
         let model = withUnsafePointer(to: &sysinfo.machine) {
@@ -51,7 +52,7 @@ struct FeedbackView: View {
         --- Device Info ---
         App: \(appName) \(version)
         Device: \(model)
-        System: \(device.systemName) \(device.systemVersion)
+        System: \(Platform.systemDescription)
         Storage Available: \(storage)
         Locale: \(Locale.current.identifier)
         """
@@ -92,11 +93,20 @@ struct FeedbackView: View {
                     }
 
                     Button {
-                        if MFMailComposeViewController.canSendMail() {
+                        #if os(macOS)
+                        // REM: Mac — hand the message to the mail app, then close.
+                        Platform.composeMail(
+                            to: "michael.fluharty@mac.com",
+                            subject: "\(appName) \(feedbackType.rawValue) — \(version)",
+                            body: bracketedBody)
+                        dismiss()
+                        #else
+                        if Platform.canSendMail {
                             showingMailSheet = true
                         } else {
                             showingMailUnavailable = true
                         }
+                        #endif
                     } label: {
                         HStack {
                             Image(systemName: "paperplane.fill")
@@ -116,14 +126,15 @@ struct FeedbackView: View {
             }
             .background(Color(red: 0.06, green: 0.09, blue: 0.16))
             .navigationTitle("Send Feedback")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
+                ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
                         .font(.system(size: 18, design: .monospaced))
                         .foregroundStyle(iceAccent)
                 }
             }
+            #if os(iOS)
             .sheet(isPresented: $showingMailSheet) {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
@@ -131,6 +142,7 @@ struct FeedbackView: View {
                     recipient: "michael.fluharty@mac.com"
                 )
             }
+            #endif
             .alert("Mail Not Available", isPresented: $showingMailUnavailable) {
                 Button("OK") { }
             } message: {
@@ -188,6 +200,7 @@ struct FeedbackView: View {
     }
 }
 
+#if os(iOS)
 struct MailComposeView: UIViewControllerRepresentable {
     let subject: String
     let body: String
@@ -215,3 +228,4 @@ struct MailComposeView: UIViewControllerRepresentable {
         }
     }
 }
+#endif

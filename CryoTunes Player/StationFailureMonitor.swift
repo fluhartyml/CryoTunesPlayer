@@ -10,9 +10,7 @@
 import Foundation
 import SwiftUI
 import MusicKit
-import MessageUI
 import Network
-import UIKit
 
 @Observable
 @MainActor
@@ -72,7 +70,7 @@ final class StationFailureMonitor {
         if reportedThisSession.contains(station) { return }
         guard MusicAuthorization.currentStatus == .authorized else { return }
         guard lastKnownPath == .satisfied else { return }
-        guard MFMailComposeViewController.canSendMail() else { return }
+        guard Platform.canSendMail else { return }
 
         reportedThisSession.insert(station)
         pendingReport = StationReport(station: station)
@@ -110,7 +108,6 @@ struct StationReport: Identifiable {
                 String(validatingCString: $0) ?? "Unknown"
             }
         }
-        let device = UIDevice.current
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm zzz"
 
@@ -135,7 +132,7 @@ struct StationReport: Identifiable {
 
         App:     CryoTunes Player \(v) (\(b))
         Device:  \(model)
-        System:  \(device.systemName) \(device.systemVersion)
+        System:  \(Platform.systemDescription)
         Time:    \(formatter.string(from: timestamp))
 
         —— Notes about the broken station (optional) ——

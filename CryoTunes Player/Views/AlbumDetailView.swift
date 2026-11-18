@@ -141,14 +141,14 @@ struct AlbumDetailView: View {
                 )
             )
             .navigationTitle("Album")
-            .navigationBarTitleDisplayMode(.inline)
+            .inlineNavigationTitle()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Done") { dismiss() }
                         .foregroundStyle(iceAccent)
                 }
             }
-            .toolbarBackground(.ultraThinMaterial, for: .navigationBar)
+            .materialNavigationBar()
         }
     }
 
@@ -167,7 +167,7 @@ struct AlbumDetailView: View {
 
     private func addToLibrary() {
         Task {
-            try? await MusicLibrary.shared.add(album)
+            try? await PlaylistManager.libraryAddAlbum(album)
             await playlistManager.addAlbumPlaylist(album)
         }
     }
