@@ -88,7 +88,7 @@ struct ContentView: View {
             // Background
             backgroundLayer
 
-            if floodsArt { floodArtLayer }
+            if floodsArt { floodArtLayer } else if isWide && !usesFoldLayout { wideArtLayer }
 
             HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen, angle: $hingeAngle)
                 .frame(width: 0, height: 0)
@@ -322,16 +322,24 @@ struct ContentView: View {
         } else if isWide {
             // Size the art to the remaining height (kept square), so a short
             // landscape canvas can't push the LCD ticker off the top edge.
-            GeometryReader { geo in
-                HStack(alignment: .center, spacing: 24) {
-                    albumArtSection
-                        .frame(maxWidth: .infinity, maxHeight: geo.size.height)
-                        .padding(.leading, 24)
+            // REM 2026-11-18 — open landscape: the art is wideArtLayer (whole left half, edge
+            // to edge) behind everything; the left column here stays empty so it shows through.
+            // The controls fill the right half on dark glass, top to bottom — his TestFlight
+            // note (Duo, 7:44 AM) "Open landscape" and in chat: "wasted screen space you could
+            // make the album art shine or something".
+            HStack(spacing: 0) {
+                Color.clear
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .allowsHitTesting(false)
+                VStack(spacing: 0) {
+                    Spacer(minLength: 0)
                     centerControls
-                        .frame(maxWidth: .infinity)
-                        .padding(.trailing, 16)
+                    Spacer(minLength: 0)
                 }
-                .frame(width: geo.size.width, height: geo.size.height)
+                .padding(.vertical, 14)
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+                .padding(.horizontal, 12)
             }
             .padding(.top, 8)
         } else {
@@ -459,6 +467,42 @@ struct ContentView: View {
             }
         }
         // Whole screen, so "half" is the Duo's fold line in laptop pose.
+        .ignoresSafeArea()
+    }
+
+    /// REM 2026-11-18 — open landscape (wide, not laptop pose): the art fills the whole left
+    /// half edge to edge, and a mirrored, blurred, dimmed copy glows across the right half
+    /// behind the controls — the "shine". Same idea as the laptop-pose reflection, turned on
+    /// its side. Long-press on the art keeps the album menu.
+    private var wideArtLayer: some View {
+        GeometryReader { g in
+            let w = g.size.width / 2, h = g.size.height
+            ZStack(alignment: .leading) {
+                // The glow: the art flipped across the middle, as if reflected.
+                floodArt(width: w, height: h)
+                    .frame(width: w, height: h)
+                    .clipped()
+                    .scaleEffect(x: -1, y: 1)
+                    .blur(radius: 28)
+                    .opacity(0.5)
+                    .mask(LinearGradient(colors: [.black, .black.opacity(0.25)], startPoint: .leading, endPoint: .trailing))
+                    .offset(x: w)
+                    .allowsHitTesting(false)
+                    .accessibilityHidden(true)
+
+                floodArt(width: w, height: h)
+                    .frame(width: w, height: h)
+                    .clipped()
+                    .overlay(alignment: .top) {
+                        // Keeps the ticker and title readable over any cover.
+                        LinearGradient(colors: [.black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom)
+                            .frame(height: 140)
+                    }
+                    .contentShape(Rectangle())
+                    .contextMenu { albumMenuItems }
+                    .accessibilityLabel("Album art")
+            }
+        }
         .ignoresSafeArea()
     }
 
