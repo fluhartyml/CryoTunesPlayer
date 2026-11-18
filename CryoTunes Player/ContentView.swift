@@ -453,10 +453,11 @@ struct ContentView: View {
         let side = max(w, h)
         if let artwork = playerManager.currentArtwork {
             ArtworkImage(artwork, width: side, height: side)
-        } else if let uiImage = UIImage(named: "AppIcon") {
-            Image(uiImage: uiImage).resizable().scaledToFill().frame(width: side, height: side)
         } else {
-            Color(red: 0.08, green: 0.12, blue: 0.2)
+            // REM: his TestFlight note 11-18 7:43 AM: "The blank album art should be a picture".
+            // App icons can't be loaded by name (UIImage(named: "AppIcon") is nil), so use the
+            // CryoTunesIcon image set: the same treble-clef art as the app icon.
+            Image("CryoTunesIcon").resizable().scaledToFill().frame(width: side, height: side)
         }
     }
 
@@ -523,22 +524,13 @@ struct ContentView: View {
 
     @ViewBuilder
     private var artPlaceholder: some View {
-        if let uiImage = UIImage(named: "AppIcon") {
-            Image(uiImage: uiImage)
-                .resizable()
-                .aspectRatio(contentMode: .fit)
-                .clipShape(RoundedRectangle(cornerRadius: 6))
-                .padding(4)
-        } else {
-            VStack(spacing: 12) {
-                Image(systemName: "music.note")
-                    .font(.system(size: 60))
-                    .foregroundStyle(iceBorder.opacity(0.4))
-                Text("CryoTunes Player")
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
-                    .foregroundStyle(iceBorder.opacity(0.4))
-            }
-        }
+        // REM: his TestFlight note 11-18: "The blank album art should be a picture" —
+        // the CryoTunesIcon art (the app icon's treble clef), not a note glyph.
+        Image("CryoTunesIcon")
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .clipShape(RoundedRectangle(cornerRadius: 6))
+            .padding(4)
     }
 
     // MARK: - Track Info
