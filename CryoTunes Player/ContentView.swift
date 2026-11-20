@@ -74,6 +74,17 @@ struct ContentView: View {
     // above the notch and Shazam below it when the notch is on the right,
     // stacked at the top when the right edge is clear.
     @State private var hasHinge = false
+    /// REM 2026-11-19 21:2x — his word: "jesus, why cant it only change iphone regular / iphone
+    /// duo/ ipad/ mac?" Builds 90 (card fits its contents) and 91 (two-layer art) are for a
+    /// REGULAR iPhone only. The Duo (it has a hinge), iPad, and Mac (it runs the iPad app, idiom
+    /// .pad) keep exactly what build 89 did. Each device type changes only when he names it.
+    private var isRegularIPhone: Bool {
+        #if os(iOS)
+        UIDevice.current.userInterfaceIdiom == .phone && !hasHinge
+        #else
+        false
+        #endif
+    }
     @State private var hingePartlyOpen = false
     @State private var hingeAngle: CGFloat?
     /// His word 11-18: reflect the art on the lower screen when the Duo is "opened 90degrees or
@@ -111,7 +122,7 @@ struct ContentView: View {
             // compromise (18:20) "if you cant move the control card i think how my screen is now
             // is the compromise" = Fill, crop the edges. Laptop pose keeps its fold layout and
             // reflection this round (the plan, step 7).
-            if usesFoldLayout { floodArtLayer } else { wallpaperLayer }
+            if usesFoldLayout { floodArtLayer } else if isRegularIPhone { wallpaperLayer } else { singleArtLayer }
 
             HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen, angle: $hingeAngle)
                 .frame(width: 0, height: 0)
@@ -346,7 +357,7 @@ struct ContentView: View {
                         .frame(width: s.width, height: s.height)
                         .offset(x: s.minX, y: s.minY)
                 }
-                if layout.hasQuadrants {
+                if layout.hasQuadrants || !isRegularIPhone {
                     playerCard(fillsQuadrant: true)
                         .frame(width: p.width, height: p.height)
                         .offset(x: p.minX, y: p.minY)
@@ -574,6 +585,26 @@ struct ContentView: View {
             .frame(width: w, height: h, alignment: .top)
             .clipped()
             .overlay(alignment: .top) {
+                    LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 140)
+                        .allowsHitTesting(false)
+                }
+                .contentShape(Rectangle())
+                .contextMenu { albumMenuItems }
+                .accessibilityLabel("Album art")
+        }
+        .ignoresSafeArea()
+    }
+
+    /// Build 89's wallpaper, unchanged: one cover, Fill, top anchored, edges cropped.
+    /// Duo (open, closed, upright), iPad and Mac keep this (his 21:2x word above).
+    private var singleArtLayer: some View {
+        GeometryReader { g in
+            let w = g.size.width, h = g.size.height
+            floodArt(width: w, height: h)
+                .frame(width: w, height: h, alignment: .top)
+                .clipped()
+                .overlay(alignment: .top) {
                     LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
                         .frame(height: 140)
                         .allowsHitTesting(false)
