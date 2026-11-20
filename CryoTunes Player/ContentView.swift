@@ -545,13 +545,35 @@ struct ContentView: View {
     /// flood for upright screens (build 85). His word: "that album art should be ancored to the
     /// top"; his pick in the Mockup: "Fill, crop the edges". A dark fade under the status bar
     /// keeps the clock and the buttons readable over any cover. Long-press keeps the album menu.
+    ///
+    /// REM 2026-11-19 21:3x — now two layers. His word: "the album art can be fit botom to top
+    /// onn the back most layer and on the mid layer it the album art fit to the width ancored to
+    /// the top of the screen swipes may not be needed" … "yes blur the back layer and build it".
+    /// - Back: the cover filling the screen bottom to top, blurred (and dimmed a touch so the
+    ///   sharp cover stands off it).
+    /// - Middle: the whole cover, sharp, as wide as the screen, top at the top of the screen. On
+    ///   an iPhone upright it ends above the player card, so nothing covers it.
+    /// - Claude's call: on a screen wider than tall, a width-fit square would run off the bottom,
+    ///   so the middle cover is capped at the screen's height (the whole cover still shows).
+    /// The swipe-away cards are parked in git stash, not deleted.
     private var wallpaperLayer: some View {
         GeometryReader { g in
             let w = g.size.width, h = g.size.height
-            floodArt(width: w, height: h)
-                .frame(width: w, height: h, alignment: .top)
-                .clipped()
-                .overlay(alignment: .top) {
+            let cover = min(w, h)
+            ZStack(alignment: .top) {
+                floodArt(width: w, height: h)
+                    .frame(width: w, height: h)
+                    .clipped()
+                    .blur(radius: 30, opaque: true)
+                    .overlay(Color.black.opacity(0.2))
+                floodArt(width: cover, height: cover)
+                    .frame(width: cover, height: cover)
+                    .clipped()
+                    .shadow(color: .black.opacity(0.5), radius: 16, y: 6)
+            }
+            .frame(width: w, height: h, alignment: .top)
+            .clipped()
+            .overlay(alignment: .top) {
                     LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
                         .frame(height: 140)
                         .allowsHitTesting(false)
