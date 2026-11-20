@@ -362,7 +362,11 @@ struct ContentView: View {
                         .frame(width: s.width, height: s.height)
                         .offset(x: s.minX, y: s.minY)
                 }
-                if layout.hasQuadrants || !isRegularIPhone {
+                // REM 2026-11-19 22:1x — his word: "that scroll on the player with the sleep timer
+                // has scroll bars on the duo closed and landscape but not portrait". The closed
+                // Duo (narrow, so no quadrants) now gets the iPhone's hug-the-contents card too.
+                // Open Duo, iPad and Mac (quadrants, or not a phone) keep build 89's card.
+                if layout.hasQuadrants || !(isRegularIPhone || hasHinge) {
                     playerCard(fillsQuadrant: true)
                         .frame(width: p.width, height: p.height)
                         .offset(x: p.minX, y: p.minY)
