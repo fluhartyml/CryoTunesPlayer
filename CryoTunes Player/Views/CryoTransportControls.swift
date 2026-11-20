@@ -310,6 +310,9 @@ struct CryoTransportControls: View {
             // size and the word ran out of room even at half size. His yes: shrink icon and word
             // TOGETHER as one unit. ViewThatFits tries the user's text size first, then steps
             // both down until the whole word fits. The icon is never dropped.
+            // ⚠️ INTENTIONAL (his word 11-20: "add rem notes ... so we dont 'fix' them in the
+            // future") — do NOT collapse this ViewThatFits back to one HStack, do NOT go back to
+            // shrinking the word alone, and do NOT drop the icon. Every step below exists on purpose.
             ViewThatFits(in: .horizontal) {
                 modeLabel(icon: icon, label: label)
                 modeLabel(icon: icon, label: label).dynamicTypeSize(.large)

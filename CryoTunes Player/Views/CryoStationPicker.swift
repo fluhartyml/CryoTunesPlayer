@@ -438,6 +438,10 @@ struct CryoStationPicker: View {
 
                     // REM 2026-11-19 — was 12 pt, under his 18 pt minimum; found while building the
                     // Mockup, fixed in this pass.
+                    // ⚠️ INTENTIONAL (his word 11-20: "add rem notes ... so we dont 'fix' them in
+                    // the future") — 18 pt is his floor, not a style choice. Do NOT shrink this
+                    // to a caption/footnote to tidy the card, and do NOT drop .fixedSize — the line
+                    // wraps to fit, it never truncates or scales down.
                     Text("Tap + to add a song, then ✓ to play. Tapping the title only previews.")
                         .font(.system(size: 18))
                         .foregroundStyle(border)
