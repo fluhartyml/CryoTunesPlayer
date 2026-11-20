@@ -42,6 +42,9 @@ public class MusicPlaybackManager {
     /// (the Apple-supported path) instead of resolving `.url()` + `AsyncImage`, which
     /// returns a `musickit://` URL that fails to load on the iOS 27 beta.
     public var currentArtwork: Artwork?
+    /// Set by stop(); cleared only when the player is really playing again. While set, the
+    /// now-playing loop leaves the track and art blank.
+    private var stoppedByUser = false
     public var sleepTimerEnd: Date?
     public var sleepTimerRemaining = ""
     public var isAuthorized = false
@@ -297,6 +300,7 @@ public class MusicPlaybackManager {
 
     public func stop() {
         player.stop()
+        stoppedByUser = true
         currentStation = MusicStationOption.none
         isPlaying = false
         nowPlayingTitle = ""
@@ -360,8 +364,11 @@ public class MusicPlaybackManager {
                 // press it, i press it and it almost goes away then it comes back". stop() clears
                 // the art, but player.stop() keeps the queue, so this 1-second loop read the old
                 // entry back in. While stopped, leave the track and art blank. (Paused keeps them.)
-                let stopped = self.player.state.playbackStatus == .stopped
-                if let entry, !stopped {
+                // 21:4x — his: "it dissapears for a moment then comes back". Reading
+                // playbackStatus == .stopped wasn't enough (after stop() it doesn't reliably read
+                // .stopped), so stop() now sets a flag that only real playback clears.
+                if self.player.state.playbackStatus == .playing { self.stoppedByUser = false }
+                if let entry, !self.stoppedByUser {
                     self.currentSongTitle = entry.title
                     self.currentArtistName = entry.subtitle ?? ""
                     self.currentArtwork = entry.artwork
