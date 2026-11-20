@@ -31,7 +31,39 @@ struct CryoStationPicker: View {
     @State private var showMusicPicker = false
     @State private var pickedSongs: [Song] = []   // picker is multi-select; we play the first
 
+    /// REM 2026-11-19 — on the Stations card, My Music takes over the whole card with ‹ Back.
+    /// His word, 18:36: "when they tap my music it should expand and take over the card with a
+    /// <back". Settings passes nil and keeps the old fold-open list.
+    var myMusicTakeover: Binding<Bool>? = nil
+
     var body: some View {
+        if let takeover = myMusicTakeover, takeover.wrappedValue {
+            VStack(alignment: .leading, spacing: 0) {
+                Button {
+                    withAnimation(.easeInOut(duration: 0.2)) { takeover.wrappedValue = false }
+                } label: {
+                    Label("Back", systemImage: "chevron.backward")
+                        .foregroundStyle(accent)
+                        .padding(.vertical, 10)
+                        .padding(.horizontal, 8)
+                }
+                .accessibilityLabel("Back")
+
+                Text("MY MUSIC")
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundStyle(border)
+                    .tracking(1.5)
+                    .padding(.horizontal, 8)
+                    .padding(.bottom, 6)
+
+                myMusicContents
+            }
+        } else {
+            stationList
+        }
+    }
+
+    private var stationList: some View {
         VStack(spacing: 0) {
             ForEach(StationCategory.allCases, id: \.self) { category in
                 if category == .billboard {
@@ -362,7 +394,12 @@ struct CryoStationPicker: View {
         VStack(spacing: 0) {
             Button {
                 withAnimation(.easeInOut(duration: 0.2)) {
-                    myMusicExpanded.toggle()
+                    if let takeover = myMusicTakeover {
+                        takeover.wrappedValue = true
+                        myMusicExpanded = true
+                    } else {
+                        myMusicExpanded.toggle()
+                    }
                     if myMusicExpanded && !libraryLoaded {
                         libraryLoaded = true
                         Task { await player.loadLibrary() }
@@ -386,13 +423,23 @@ struct CryoStationPicker: View {
                 .padding(.horizontal, 8)
             }
 
-            if myMusicExpanded {
+            if myMusicExpanded && myMusicTakeover == nil {
+                myMusicContents
+            }
+        }
+    }
+
+    /// Search, Playlists, Albums, Artists — shown under My Music in Settings, and as the whole
+    /// card when My Music takes over the Stations card.
+    @ViewBuilder private var myMusicContents: some View {
                 #if os(iOS)
                 if #available(iOS 27.0, *) {
                     searchAppleMusicButton
 
+                    // REM 2026-11-19 — was 12 pt, under his 18 pt minimum; found while building the
+                    // Mockup, fixed in this pass.
                     Text("Tap + to add a song, then ✓ to play. Tapping the title only previews.")
-                        .font(.system(size: 12))
+                        .font(.system(size: 18))
                         .foregroundStyle(border)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)
@@ -469,8 +516,6 @@ struct CryoStationPicker: View {
                         }
                     }
                 }
-            }
-        }
     }
 
     private func librarySubSection<Content: View>(

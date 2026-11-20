@@ -11,7 +11,9 @@ import ShazamKit
 
 struct ContentView: View {
     @State private var playerManager = CryoPlayerHost.player
-    @State private var weatherManager = CryoWeatherManager()
+    // REM 2026-11-19 — the weather retired with the LCD. His word, 18:54: "weater and everything
+    // to do with the lcd". No weather request, so no location ask either. WeatherManager.swift
+    // and LCDTickerView.swift stay in the project, unused (his "rem line it if you want").
     @State private var dislikeManager = DislikeManager()
     @State private var playlistManager = PlaylistManager()
     @State private var favoriteManager = FavoriteManager()
@@ -26,14 +28,24 @@ struct ContentView: View {
     @State private var showingFailureMailComposer = false
     @State private var showSleepTimerSheet = false
     @State private var fullWidth: CGFloat = 0
+    @State private var topInset: CGFloat = 0
 
-    /// REM 2026-11-18 — big screens (iPad, the open Duo, a wide Mac window) get a side panel:
-    /// Sleep Timer on top, Stations under it, the player beside it. His word: "my iphone apps
-    /// look like they are just enlarged and not optomized for ipads or iphone duos", "it needs
-    /// the sleep timer", then "yes build it". Measured from the whole width, not size classes.
-    /// Laptop pose keeps its fold layout. Uses the hinge state (not isWide), because isWide
-    /// is measured inside the player and would flip when the panel appears.
-    private var usesSidePanel: Bool { fullWidth >= 700 && !(hasHinge && hingePartlyOpen) }
+    /// REM 2026-11-19 — the 11-18 side panel (Sleep Timer + Stations, build 87) is gone. In its
+    /// place: two glass cards in quadrants (see CardPlacement.swift). The Sleep Timer moved into
+    /// the player card, last (his word 18:37: "the sleep timer should be on the bottom under pop
+    /// hits 1980 popular hits"); the station readout moved to the Stations card (18:38: "pop hits
+    /// and popular hits is related more to the stations card"). The listener picks each card's
+    /// quadrant in Settings; picking the other card's quadrant swaps them.
+    @AppStorage(CardQuadrant.playerKey) private var playerQuadrantRaw = CardQuadrant.bottomRight.rawValue
+    @AppStorage(CardQuadrant.stationsKey) private var stationsQuadrantRaw = CardQuadrant.bottomLeft.rawValue
+    @State private var myMusicOpen = false
+    private var playerQuadrant: CardQuadrant { CardQuadrant(rawValue: playerQuadrantRaw) ?? .bottomRight }
+    private var stationsQuadrant: CardQuadrant { CardQuadrant(rawValue: stationsQuadrantRaw) ?? .bottomLeft }
+
+    /// Shazam + Settings sit at the top trailing corner when no status column or strip holds
+    /// them (a regular iPhone upright, an iPad). Before, they rode the title bar, which retired
+    /// with the LCD.
+    private var usesCornerButtons: Bool { !usesSideColumn && !usesTopStrip && !usesPhoneColumn }
 
     // Ice blue palette
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -74,15 +86,10 @@ struct ContentView: View {
     private var usesTopStrip: Bool { hasHinge && !usesSideColumn }
     private var usesPhoneColumn: Bool { !hasHinge && isWide && sideColumn >= 44 }
     private var usesFoldLayout: Bool { hasHinge && hingePartlyOpen && !isWide }
-    /// REM 2026-11-18 — portrait (not fold, not wide): the album art floods the top half of
-    /// the screen edge to edge and everything else floats over it. His word, after his note
-    /// "Album art is too small": "flood the top half of the screen with the album art and the
-    /// other elements to float over the album art". The faux LCD stays as the retro touch.
-    /// Laptop pose (Duo partly open) floods too, and mirrors the art onto the lower screen —
-    /// his note 11-18 7:38 AM: "It should be full screen with reflections on the keyboard (lower
-    /// half)", and in chat: "the album art should reflect on the other screen netflix and video
-    /// streamers do this".
-    private var floodsArt: Bool { !isWide }
+    /// REM 2026-11-18 — laptop pose (Duo partly open) floods the top half and mirrors the art onto
+    /// the lower screen — his note 11-18 7:38 AM: "It should be full screen with reflections on
+    /// the keyboard (lower half)". Kept as-is this round (floodArtLayer); every other pose uses
+    /// wallpaperLayer since 11-19. (The old half-height flood for upright screens retired then.)
 
     // Interface .landscapeLeft = home side on the left, so the notch (top of
     // the phone) is on the right — UIOrientation.h.
@@ -94,32 +101,30 @@ struct ContentView: View {
     }
 
     var body: some View {
-        HStack(spacing: 0) {
-        if usesSidePanel { sidePanel }
         ZStack {
             // Background
             backgroundLayer
 
-            if floodsArt { floodArtLayer } else if isWide && !usesFoldLayout { wideArtLayer }
+            // REM 2026-11-19 — the album art is the wallpaper: one layer, the whole screen,
+            // cropped at the edges, top kept in view. His words: "that pink floys album art should
+            // have been full screen", "that album art should be ancored to the top", and his
+            // compromise (18:20) "if you cant move the control card i think how my screen is now
+            // is the compromise" = Fill, crop the edges. Laptop pose keeps its fold layout and
+            // reflection this round (the plan, step 7).
+            if usesFoldLayout { floodArtLayer } else { wallpaperLayer }
 
             HingeReader(hasHinge: $hasHinge, partlyOpen: $hingePartlyOpen, angle: $hingeAngle)
                 .frame(width: 0, height: 0)
 
-            // Main player UI
-            VStack(spacing: 0) {
-                // LCD ticker at top
-                LCDTickerView(weatherManager: weatherManager)
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 4)
-
-                // Title + gear bar
-                topBar
-                    .padding(.horizontal, 16)
-                    .padding(.bottom, 6)
-
-                adaptivePlayerBody
+            // REM 2026-11-19 — the LCD, the weather and the "CryoTunes vX (N) Player" title bar
+            // are retired. His word 9:59 AM card: "The lcd needs to be retired". The version and
+            // build number still show in Settings → About.
+            if usesFoldLayout {
+                foldBody
+                    .padding(.bottom, 20)
+            } else {
+                cardsLayer
             }
-            .padding(.bottom, 20)
         }
         .background(
             GeometryReader { geo in
@@ -127,25 +132,22 @@ struct ContentView: View {
                     .onAppear {
                         isWide = geo.size.width > geo.size.height
                         sideColumn = geo.safeAreaInsets.trailing
+                        topInset = geo.safeAreaInsets.top
+                        fullWidth = geo.size.width + geo.safeAreaInsets.leading + geo.safeAreaInsets.trailing
                         screenHeight = geo.frame(in: .global).maxY + geo.safeAreaInsets.bottom
                         readNotchSide()
                     }
                     .onChange(of: geo.size) { _, newSize in
                         isWide = newSize.width > newSize.height
+                        fullWidth = newSize.width + geo.safeAreaInsets.leading + geo.safeAreaInsets.trailing
                         screenHeight = geo.frame(in: .global).maxY + geo.safeAreaInsets.bottom
                         readNotchSide()
                     }
-                    .onChange(of: geo.safeAreaInsets.trailing) { _, newInset in
-                        sideColumn = newInset
+                    .onChange(of: geo.safeAreaInsets) { _, newInsets in
+                        sideColumn = newInsets.trailing
+                        topInset = newInsets.top
+                        fullWidth = geo.size.width + newInsets.leading + newInsets.trailing
                     }
-            }
-        )
-        }
-        .background(
-            GeometryReader { g in
-                Color.clear
-                    .onAppear { fullWidth = g.size.width }
-                    .onChange(of: g.size.width) { _, w in fullWidth = w }
             }
         )
         .sheet(isPresented: $showSleepTimerSheet) {
@@ -197,6 +199,13 @@ struct ContentView: View {
                 .frame(width: sideColumn)
                 .frame(maxHeight: .infinity)
                 .ignoresSafeArea(edges: .trailing)
+            } else {
+                HStack(spacing: 8) {
+                    shazamButton
+                    settingsButton
+                }
+                .padding(.trailing, 12)
+                .padding(.top, 4)
             }
         }
         .overlay(alignment: .center) {
@@ -267,7 +276,6 @@ struct ContentView: View {
         }
         .preferredColorScheme(.dark)
         .onAppear {
-            weatherManager.requestWeather()
             shazamManager.playlistManager = playlistManager
         }
     }
@@ -288,39 +296,7 @@ struct ContentView: View {
         .ignoresSafeArea()
     }
 
-    // MARK: - Top Bar
-
-    private var appVersion: String {
-        let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
-        let build = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "v\(version) (\(build))"
-    }
-
-    private var topBar: some View {
-        HStack {
-            VStack(alignment: .leading, spacing: 0) {
-                HStack(alignment: .firstTextBaseline, spacing: 6) {
-                    Text("CryoTunes")
-                        .font(.system(size: 20, weight: .bold, design: .monospaced))
-                        .foregroundStyle(iceBlue)
-                    Text(appVersion)
-                        .font(.system(size: 18, weight: .medium, design: .monospaced))
-                        .foregroundStyle(iceBorder.opacity(0.5))
-                }
-                Text("Player")
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
-                    .foregroundStyle(iceBlue.opacity(0.6))
-            }
-
-            Spacer()
-
-            if !usesSideColumn && !usesTopStrip && !usesPhoneColumn {
-                shazamButton
-                    .padding(.trailing, 8)
-                settingsButton
-            }
-        }
-    }
+    // MARK: - Shazam + Settings
 
     private var shazamButton: some View {
         Button {
@@ -332,6 +308,7 @@ struct ContentView: View {
                 .symbolEffect(.pulse, isActive: shazamManager.isListening)
                 .frame(width: 44, height: 44)
         }
+        .accessibilityLabel("Shazam")
     }
 
     private var settingsButton: some View {
@@ -343,54 +320,97 @@ struct ContentView: View {
                 .foregroundStyle(iceBlue)
                 .frame(width: 44, height: 44)
         }
+        .accessibilityLabel("Settings")
     }
 
-    // MARK: - Adaptive Player Body
+    // MARK: - Cards (quadrants)
 
-    // Two-column when wide (landscape / iPad / unfolded Fold), stacked otherwise.
-    @ViewBuilder
-    private var adaptivePlayerBody: some View {
-        if usesFoldLayout {
-            foldBody
-        } else if isWide {
-            // Size the art to the remaining height (kept square), so a short
-            // landscape canvas can't push the LCD ticker off the top edge.
-            // REM 2026-11-18 — open landscape: the art is wideArtLayer (whole left half, edge
-            // to edge) behind everything; the left column here stays empty so it shows through.
-            // The controls fill the right half on dark glass, top to bottom — his TestFlight
-            // note (Duo, 7:44 AM) "Open landscape" and in chat: "wasted screen space you could
-            // make the album art shine or something".
-            HStack(spacing: 0) {
-                Color.clear
-                    .frame(maxWidth: .infinity, maxHeight: .infinity)
-                    .allowsHitTesting(false)
-                VStack(spacing: 0) {
-                    Spacer(minLength: 0)
-                    centerControls
-                    Spacer(minLength: 0)
+    /// REM 2026-11-19 — one rule for every pose, Duo open as the guide (his word 18:5x). The
+    /// rectangles come from CardLayout; each card fills its quadrant and fits its contents to it
+    /// (his 11-14 rule: "youre supposed to use contengent sizing so enerything fits naturally").
+    private var cardsLayer: some View {
+        GeometryReader { geo in
+            let layout = CardLayout(
+                size: geo.size,
+                trailingInset: geo.safeAreaInsets.trailing > 0 ? geo.safeAreaInsets.trailing : sideColumn,
+                fullWidth: fullWidth,
+                creaseMidX: (hasHinge && isWide) ? fullWidth / 2 - geo.safeAreaInsets.leading : nil,
+                creaseMidY: (hasHinge && !isWide && fullWidth > 600) ? screenHeight / 2 - topInset : nil,
+                topReserve: usesCornerButtons ? 52 : 0
+            )
+            let p = layout.rect(for: playerQuadrant)
+            ZStack(alignment: .topLeading) {
+                if layout.hasQuadrants {
+                    let s = layout.rect(for: stationsQuadrant)
+                    stationsCard
+                        .frame(width: s.width, height: s.height)
+                        .offset(x: s.minX, y: s.minY)
                 }
-                .padding(.vertical, 14)
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
-                .padding(.horizontal, 12)
+                playerCard
+                    .frame(width: p.width, height: p.height)
+                    .offset(x: p.minX, y: p.minY)
             }
-            .padding(.top, 8)
-        } else {
-            // REM 2026-11-18 — the art takes the room FIRST. Two greedy Spacers were splitting
-            // the leftover height with it, so the square shrank to fit its third and left a
-            // band of empty screen below the controls. His TestFlight note (iPhone Duo, iOS
-            // 27.3, build 76, Nov 17 9:45 PM): "Album art is too small". Now it grows to the
-            // full width (less margins) or the height the controls leave, whichever is less,
-            // and the Spacers only center what is left over.
-            // REM 2026-11-18 — the art is now floodArtLayer behind everything (see floodsArt);
-            // the controls float over its lower edge on dark glass, pinned to the bottom, so
-            // on a shorter screen they ride up over the art instead of being squeezed.
-            Spacer(minLength: 0)
-            centerControls
-                .padding(.vertical, 14)
-                .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
-                .padding(.horizontal, 12)
+            .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
+    }
+
+    /// Track, time bar, transport, Shuffle/All/One, Like/Skip/Share, then the Sleep Timer last.
+    /// REM 2026-11-19 — the small "Sleep" line is gone (his "ooh yeah", 18:39): the timer
+    /// buttons are right there. Full spacing first; tighter if the quadrant is short; it scrolls
+    /// only if even that can't fit.
+    private var playerCard: some View {
+        ViewThatFits(in: .vertical) {
+            playerCardContents(spacing: 12)
+            playerCardContents(spacing: 6)
+            ScrollView { playerCardContents(spacing: 6) }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("playerCard")
+    }
+
+    private func playerCardContents(spacing: CGFloat) -> some View {
+        VStack(spacing: spacing) {
+            trackInfoView
+            progressBar
+                .padding(.horizontal, 24)
+            transportControls
+            sleepTimerButtons
+                .padding(.horizontal, 16)
+        }
+        .padding(.vertical, spacing + 4)
+        .frame(maxWidth: .infinity)
+    }
+
+    /// Station readout on top ("Pop Hits: 1980 / POPULAR HITS"), the station list scrolling
+    /// below it. My Music takes over the whole card with ‹ Back.
+    private var stationsCard: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            if !myMusicOpen {
+                Text("STATIONS")
+                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .foregroundStyle(iceBorder)
+                    .tracking(1.5)
+                stationDisplay
+                    .frame(maxWidth: .infinity)
+            }
+            ScrollView {
+                CryoStationPicker(
+                    player: playerManager,
+                    stationFailureMonitor: stationFailureMonitor,
+                    tint: iceBlue,
+                    accent: iceAccent,
+                    border: iceBorder,
+                    myMusicTakeover: $myMusicOpen
+                )
+            }
+        }
+        .padding(14)
+        .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+        .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+        .accessibilityElement(children: .contain)
+        .accessibilityIdentifier("stationsCard")
     }
 
     // Duo partly open, fold across the middle of the screen: art above the
@@ -503,38 +523,26 @@ struct ContentView: View {
         .ignoresSafeArea()
     }
 
-    /// REM 2026-11-18 — open landscape (wide, not laptop pose): the art fills the whole left
-    /// half edge to edge, and a mirrored, blurred, dimmed copy glows across the right half
-    /// behind the controls — the "shine". Same idea as the laptop-pose reflection, turned on
-    /// its side. Long-press on the art keeps the album menu.
-    private var wideArtLayer: some View {
+    /// REM 2026-11-19 — the wallpaper: one square cover, as big as the screen's longer side,
+    /// centered left to right with its TOP at the top of the screen, cropped at the edges.
+    /// Replaces wideArtLayer (half-screen art + mirrored glow, build 86) and the half-height
+    /// flood for upright screens (build 85). His word: "that album art should be ancored to the
+    /// top"; his pick in the Mockup: "Fill, crop the edges". A dark fade under the status bar
+    /// keeps the clock and the buttons readable over any cover. Long-press keeps the album menu.
+    private var wallpaperLayer: some View {
         GeometryReader { g in
-            let w = g.size.width / 2, h = g.size.height
-            ZStack(alignment: .leading) {
-                // The glow: the art flipped across the middle, as if reflected.
-                floodArt(width: w, height: h)
-                    .frame(width: w, height: h)
-                    .clipped()
-                    .scaleEffect(x: -1, y: 1)
-                    .blur(radius: 28)
-                    .opacity(0.5)
-                    .mask(LinearGradient(colors: [.black, .black.opacity(0.25)], startPoint: .leading, endPoint: .trailing))
-                    .offset(x: w)
-                    .allowsHitTesting(false)
-                    .accessibilityHidden(true)
-
-                floodArt(width: w, height: h)
-                    .frame(width: w, height: h)
-                    .clipped()
-                    .overlay(alignment: .top) {
-                        // Keeps the ticker and title readable over any cover.
-                        LinearGradient(colors: [.black.opacity(0.6), .clear], startPoint: .top, endPoint: .bottom)
-                            .frame(height: 140)
-                    }
-                    .contentShape(Rectangle())
-                    .contextMenu { albumMenuItems }
-                    .accessibilityLabel("Album art")
-            }
+            let w = g.size.width, h = g.size.height
+            floodArt(width: w, height: h)
+                .frame(width: w, height: h, alignment: .top)
+                .clipped()
+                .overlay(alignment: .top) {
+                    LinearGradient(colors: [.black.opacity(0.55), .clear], startPoint: .top, endPoint: .bottom)
+                        .frame(height: 140)
+                        .allowsHitTesting(false)
+                }
+                .contentShape(Rectangle())
+                .contextMenu { albumMenuItems }
+                .accessibilityLabel("Album art")
         }
         .ignoresSafeArea()
     }
@@ -552,29 +560,6 @@ struct ContentView: View {
         }
     }
 
-    // Track info, progress, sleep timer, transport, and station readout.
-    private var centerControls: some View {
-        VStack(spacing: 0) {
-            trackInfoView
-
-            Spacer().frame(height: 6)
-
-            progressBar
-                .padding(.horizontal, 32)
-
-            Spacer().frame(height: 8)
-
-            timerDisplay
-
-            Spacer().frame(height: 12)
-
-            transportControls
-
-            Spacer().frame(height: 20)
-
-            stationDisplay
-        }
-    }
 
     // MARK: - Album Art
 
@@ -641,7 +626,11 @@ struct ContentView: View {
                     Text(playerManager.currentSongTitle.isEmpty ? "No Track" : playerManager.currentSongTitle)
                         .font(.system(size: 18, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
-                        .lineLimit(1)
+                        // REM 2026-11-19 — the title wraps (two lines) instead of ending in "…";
+                        // his 10:06 card showed it cut off. The plan, step 3.
+                        .lineLimit(2)
+                        .multilineTextAlignment(.center)
+                        .fixedSize(horizontal: false, vertical: true)
                         .shadow(color: iceGlow.opacity(0.3), radius: 2)
 
                     Text(playerManager.currentArtistName.isEmpty ? "---" : playerManager.currentArtistName)
@@ -652,8 +641,10 @@ struct ContentView: View {
                 .padding(.horizontal, 12)
                 .padding(.vertical, 8)
             }
-            .frame(height: 56)
-            .padding(.horizontal, 32)
+            .frame(minHeight: 56)
+            // The box's shape is greedy; keep it to its text so it can't swell to fill the card.
+            .fixedSize(horizontal: false, vertical: true)
+            .padding(.horizontal, 24)
         }
     }
 
@@ -842,51 +833,6 @@ struct ContentView: View {
             dark: iceDark,
             border: iceBorder
         )
-    }
-
-    // MARK: - Side Panel (big screens)
-
-    private var sidePanel: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 22) {
-                panelSection("Sleep Timer") {
-                    sleepTimerButtons
-                    timerCountdown
-                        .padding(.top, 8)
-                }
-                panelSection("Stations") {
-                    CryoStationPicker(
-                        player: playerManager,
-                        stationFailureMonitor: stationFailureMonitor,
-                        tint: iceBlue,
-                        accent: iceAccent,
-                        border: iceBorder
-                    )
-                }
-            }
-            .padding(16)
-        }
-        .frame(width: 340)
-        .background(Color(red: 0.06, green: 0.09, blue: 0.16).ignoresSafeArea())
-        .overlay(alignment: .trailing) {
-            Rectangle().fill(iceBorder.opacity(0.25)).frame(width: 1).ignoresSafeArea()
-        }
-    }
-
-    private func panelSection<Content: View>(_ title: String, @ViewBuilder content: () -> Content) -> some View {
-        VStack(alignment: .leading, spacing: 10) {
-            Text(title.uppercased())
-                .font(.system(size: 18, weight: .bold, design: .monospaced))
-                .foregroundStyle(iceBorder)
-                .tracking(1.5)
-            VStack(spacing: 0) { content() }
-                .padding(12)
-                .background(
-                    RoundedRectangle(cornerRadius: 6)
-                        .fill(Color.black.opacity(0.3))
-                        .overlay(RoundedRectangle(cornerRadius: 6).strokeBorder(iceBorder.opacity(0.2), lineWidth: 1))
-                )
-        }
     }
 
     // MARK: - Transport Controls

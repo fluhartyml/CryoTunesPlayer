@@ -7,6 +7,11 @@
 
 import SwiftUI
 
+// REM 2026-11-19 — RETIRED. Nothing shows this view any more; it stays in the project, unused.
+// His 9:59 AM TestFlight card (CryoTunes 87, Duo): "The lcd needs to be retired". In chat, 18:54,
+// asked whether the weather goes with it: "weater and everything to do with the lcd". Asked
+// whether to delete this file or leave it: "rem line it if you want" — so it is kept, with
+// these lines. Do not wire it back in without his word.
 struct LCDTickerView: View {
     let weatherManager: CryoWeatherManager
 

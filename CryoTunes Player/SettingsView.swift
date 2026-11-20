@@ -33,6 +33,9 @@ struct SettingsView: View {
                     // Sleep Timer
                     sleepTimerSection
 
+                    // Card Position
+                    cardPositionSection
+
                     // Manage Dislikes
                     if !dislikeManager.stationsWithDislikes().isEmpty {
                         dislikesSection
@@ -86,6 +89,60 @@ struct SettingsView: View {
                 border: iceBorder
             )
         }
+    }
+
+    // MARK: - Card Position
+
+    /// REM 2026-11-19 — the listener picks a quadrant for each glass card. His word, 18:24:
+    /// "can we have preset options the user can choose to reposition?", then 18:27: quadrants,
+    /// "either of the cards". Picking the other card's quadrant swaps the two. The buttons are a
+    /// 2 × 2 grid laid out like the screen, so each button sits where its card will go. Saved,
+    /// so the choice holds after a relaunch and in every pose. On screens under 700 points wide
+    /// only top or bottom applies, and the Stations card stays here in Settings.
+    @AppStorage(CardQuadrant.playerKey) private var playerQuadrantRaw = CardQuadrant.bottomRight.rawValue
+    @AppStorage(CardQuadrant.stationsKey) private var stationsQuadrantRaw = CardQuadrant.bottomLeft.rawValue
+
+    private var cardPositionSection: some View {
+        sectionContainer(title: "Card Position") {
+            VStack(alignment: .leading, spacing: 16) {
+                quadrantPicker(title: "Player card", key: "player", mine: $playerQuadrantRaw, other: $stationsQuadrantRaw)
+                Divider().overlay(iceBorder.opacity(0.2))
+                quadrantPicker(title: "Stations card", key: "stations", mine: $stationsQuadrantRaw, other: $playerQuadrantRaw)
+            }
+        }
+    }
+
+    private func quadrantPicker(title: String, key: String, mine: Binding<String>, other: Binding<String>) -> some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text(title)
+                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                .foregroundStyle(iceBlue)
+            Grid(horizontalSpacing: 8, verticalSpacing: 8) {
+                GridRow { quadrantButton(.topLeft, key: key, mine: mine, other: other); quadrantButton(.topRight, key: key, mine: mine, other: other) }
+                GridRow { quadrantButton(.bottomLeft, key: key, mine: mine, other: other); quadrantButton(.bottomRight, key: key, mine: mine, other: other) }
+            }
+        }
+    }
+
+    private func quadrantButton(_ q: CardQuadrant, key: String, mine: Binding<String>, other: Binding<String>) -> some View {
+        let selected = mine.wrappedValue == q.rawValue
+        return Button {
+            if other.wrappedValue == q.rawValue { other.wrappedValue = mine.wrappedValue }
+            mine.wrappedValue = q.rawValue
+        } label: {
+            Text(q.label)
+                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .foregroundStyle(selected ? .black : iceBlue)
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 10)
+                .background(RoundedRectangle(cornerRadius: 4).fill(selected ? iceAccent : iceDark))
+                .overlay(RoundedRectangle(cornerRadius: 4).strokeBorder(iceBorder.opacity(0.4), lineWidth: 1))
+        }
+        .accessibilityLabel(q.label)
+        .accessibilityIdentifier("quad.\(key).\(q.rawValue)")
+        .accessibilityAddTraits(selected ? .isSelected : [])
     }
 
     // MARK: - AirPlay
@@ -182,19 +239,8 @@ struct SettingsView: View {
                         .foregroundStyle(iceBorder.opacity(0.5))
                     Spacer()
                 }
-                Divider().overlay(iceBorder.opacity(0.2))
-                Link(destination: URL(string: "https://weatherkit.apple.com/legal-attribution.html")!) {
-                    HStack(spacing: 4) {
-                        Image(systemName: "apple.logo")
-                            .font(.system(size: 18))
-                        Text("Weather")
-                            .font(.system(size: 18, weight: .medium, design: .monospaced))
-                        Spacer()
-                        Image(systemName: "arrow.up.right.square")
-                            .font(.system(size: 18))
-                    }
-                    .foregroundStyle(iceBorder.opacity(0.5))
-                }
+                // REM 2026-11-19 — the  Weather attribution link left with the weather (his word
+                // 18:54: "weater and everything to do with the lcd"); the app shows no weather now.
                 Divider().overlay(iceBorder.opacity(0.2))
                 Button {
                     showingStationSuggestion = true

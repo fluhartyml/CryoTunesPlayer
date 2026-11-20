@@ -9,6 +9,9 @@ import Foundation
 import WeatherKit
 import CoreLocation
 
+// REM 2026-11-19 — RETIRED with the LCD (his word 18:54: "weater and everything to do with the
+// lcd"). Nothing creates this class any more, so the app no longer asks for location. Kept in
+// the project, unused, like LCDTickerView.swift.
 @Observable
 public class CryoWeatherManager: NSObject, CLLocationManagerDelegate {
     public var temperature: String = "--"

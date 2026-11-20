@@ -28,23 +28,24 @@ struct CryoTransportControls: View {
             // Row 1: Transport
             HStack(spacing: 32) {
                 Button { skipBackWithUndo() } label: {
-                    transportButton(icon: "backward.end.fill", size: 24)
+                    transportButton(icon: "backward.end.fill", size: 24, label: "Previous")
                 }
 
                 Button { player.togglePlayPause() } label: {
                     transportButton(
                         icon: player.isPlaying ? "pause.fill" : "play.fill",
                         size: 32,
-                        prominent: true
+                        prominent: true,
+                        label: player.isPlaying ? "Pause" : "Play"
                     )
                 }
 
                 Button { skipForwardWithDislike() } label: {
-                    transportButton(icon: "forward.end.fill", size: 24)
+                    transportButton(icon: "forward.end.fill", size: 24, label: "Next")
                 }
 
                 Button { player.stop() } label: {
-                    transportButton(icon: "stop.fill", size: 22)
+                    transportButton(icon: "stop.fill", size: 22, label: "Stop")
                 }
             }
 
@@ -228,7 +229,7 @@ struct CryoTransportControls: View {
 
     // MARK: - Button Styles
 
-    private func transportButton(icon: String, size: CGFloat, prominent: Bool = false) -> some View {
+    private func transportButton(icon: String, size: CGFloat, prominent: Bool = false, label: String) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
                 .fill(
@@ -255,6 +256,10 @@ struct CryoTransportControls: View {
                 .shadow(color: prominent ? glow.opacity(0.4) : .clear, radius: 3)
         }
         .frame(width: prominent ? 64 : 52, height: prominent ? 52 : 44)
+        // REM 2026-11-19 — the robots found VoiceOver reading the glyph's own name: ⏮ said
+        // "Go To End" and ⏭ said "Go To Start" (backwards). Name what each does.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(label)
     }
 
     private func modeButton(icon: String, label: String, isActive: Bool) -> some View {
@@ -304,6 +309,9 @@ struct CryoTransportControls: View {
             .padding(.horizontal, 6)
         }
         .frame(height: 36)
+        // REM 2026-11-19 — the robots found VoiceOver saying "Shuffle, Shuffle" (glyph + word).
+        // One element, one name.
+        .accessibilityElement(children: .ignore)
         .accessibilityLabel(label)
     }
 }
