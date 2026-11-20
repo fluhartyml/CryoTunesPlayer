@@ -355,7 +355,13 @@ public class MusicPlaybackManager {
             while !Task.isCancelled {
                 guard let self else { return }
                 let entry = self.player.queue.currentEntry
-                if let entry {
+                // REM 2026-11-19 21:3x — his word: "when i press stop on the player why doesnt the
+                // album art go away? it keeps the last pplayed album no matter how many times i
+                // press it, i press it and it almost goes away then it comes back". stop() clears
+                // the art, but player.stop() keeps the queue, so this 1-second loop read the old
+                // entry back in. While stopped, leave the track and art blank. (Paused keeps them.)
+                let stopped = self.player.state.playbackStatus == .stopped
+                if let entry, !stopped {
                     self.currentSongTitle = entry.title
                     self.currentArtistName = entry.subtitle ?? ""
                     self.currentArtwork = entry.artwork
