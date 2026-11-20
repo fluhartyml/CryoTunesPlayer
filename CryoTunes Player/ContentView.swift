@@ -181,7 +181,12 @@ struct ContentView: View {
                     settingsButton
                 }
                 .frame(width: sideColumn)
-                .padding(.top, 72)
+                // REM 2026-11-19 21:5x — his word: "after it finished loading on the duo the cog
+                // and shazam quickly jumped behimd the signal strength and clock ... if its going
+                // to jump it should at least fall well below the signal meter". 72 pt put them
+                // behind the status pill (clock + Wi-Fi run to about 160 pt on the Duo sim, build
+                // 91 screenshot). 184 pt clears it with room. His real Duo is the judge.
+                .padding(.top, 184)
                 .ignoresSafeArea(edges: .trailing)
             } else if usesTopStrip {
                 // Measured on the Duo simulator, open: the clock starts about
