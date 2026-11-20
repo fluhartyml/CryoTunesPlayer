@@ -262,6 +262,14 @@ struct CryoTransportControls: View {
         .accessibilityLabel(label)
     }
 
+    private func modeLabel(icon: String, label: String) -> some View {
+        HStack(spacing: 6) {
+            Image(systemName: icon)
+            Text(label).lineLimit(1)
+        }
+        .fixedSize()
+    }
+
     private func modeButton(icon: String, label: String, isActive: Bool) -> some View {
         ZStack {
             RoundedRectangle(cornerRadius: 6)
@@ -298,11 +306,22 @@ struct CryoTransportControls: View {
             // icon to make room — he said the icon is necessary.
             // Scope: these mode buttons only. Any label WITHOUT an icon beside
             // it still follows the 18 pt rule.
-            HStack(spacing: 6) {
-                Image(systemName: icon)
-                Text(label)
-                    .lineLimit(1)
-                    .minimumScaleFactor(0.5)
+            // REM 2026-11-19 23:1x — his 4.0 screenshots showed "Shuf…": the icon kept its full
+            // size and the word ran out of room even at half size. His yes: shrink icon and word
+            // TOGETHER as one unit. ViewThatFits tries the user's text size first, then steps
+            // both down until the whole word fits. The icon is never dropped.
+            ViewThatFits(in: .horizontal) {
+                modeLabel(icon: icon, label: label)
+                modeLabel(icon: icon, label: label).dynamicTypeSize(.large)
+                modeLabel(icon: icon, label: label).dynamicTypeSize(.small)
+                modeLabel(icon: icon, label: label).dynamicTypeSize(.xSmall)
+                HStack(spacing: 6) {
+                    Image(systemName: icon)
+                    Text(label)
+                        .lineLimit(1)
+                        .minimumScaleFactor(0.5)
+                }
+                .dynamicTypeSize(.xSmall)
             }
             .foregroundStyle(isActive ? tint : accent.opacity(0.5))
             .shadow(color: isActive ? glow.opacity(0.4) : .clear, radius: 3)
