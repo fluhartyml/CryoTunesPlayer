@@ -346,9 +346,24 @@ struct ContentView: View {
                         .frame(width: s.width, height: s.height)
                         .offset(x: s.minX, y: s.minY)
                 }
-                playerCard
-                    .frame(width: p.width, height: p.height)
-                    .offset(x: p.minX, y: p.minY)
+                if layout.hasQuadrants {
+                    playerCard(fillsQuadrant: true)
+                        .frame(width: p.width, height: p.height)
+                        .offset(x: p.minX, y: p.minY)
+                } else {
+                    // REM 2026-11-19 20:1x — his word: "on the iphone cryotunes player the no track
+                    // player card is a smaii amount too small causing the sleep timer to make the
+                    // card scroll". A narrow screen has only the one card, so it no longer stops
+                    // at the half: it hugs its contents and grows from its own edge (bottom card
+                    // grows up, top card grows down) into the whole column, scrolling only if
+                    // even that is too short. Contingent sizing, his 11-14 rule.
+                    let top = layout.rect(for: .topLeft).minY
+                    let bottom = layout.rect(for: .bottomLeft).maxY
+                    playerCard(fillsQuadrant: false)
+                        .frame(width: p.width, height: bottom - top,
+                               alignment: playerQuadrant.isTop ? .top : .bottom)
+                        .offset(x: p.minX, y: top)
+                }
             }
             .frame(width: geo.size.width, height: geo.size.height, alignment: .topLeading)
         }
@@ -358,13 +373,14 @@ struct ContentView: View {
     /// REM 2026-11-19 — the small "Sleep" line is gone (his "ooh yeah", 18:39): the timer
     /// buttons are right there. Full spacing first; tighter if the quadrant is short; it scrolls
     /// only if even that can't fit.
-    private var playerCard: some View {
+    /// `fillsQuadrant: false` (narrow screens) — the card is as tall as what it shows, no taller.
+    private func playerCard(fillsQuadrant: Bool) -> some View {
         ViewThatFits(in: .vertical) {
             playerCardContents(spacing: 12)
             playerCardContents(spacing: 6)
             ScrollView { playerCardContents(spacing: 6) }
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, maxHeight: fillsQuadrant ? .infinity : nil)
         .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("playerCard")
