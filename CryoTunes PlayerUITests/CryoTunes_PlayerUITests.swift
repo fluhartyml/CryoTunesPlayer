@@ -23,13 +23,17 @@ final class CryoTunes_PlayerUITests: XCTestCase {
         app.launch()
         XCTAssertTrue(app.buttons["Settings"].waitForExistence(timeout: 10), "Settings (cog) button missing")
         // Every test starts from the Mockup's default: player bottom right, Stations bottom left.
-        setQuadrants(player: "br", stations: "bl")
+        // (A regular iPhone has no Card Position setting — his word 11-19 — and always uses it.)
+        if hasCardPosition { setQuadrants(player: "br", stations: "bl") }
     }
 
     // MARK: - Helpers
 
     private var isWide: Bool { app.windows.firstMatch.frame.width >= 700 }
     private var screen: CGRect { app.windows.firstMatch.frame }
+    /// Card Position shows on the Duo, iPad and Mac, not a regular iPhone. The iPhone sims we
+    /// run have no hinge, so idiom alone tells them apart here.
+    private var hasCardPosition: Bool { UIDevice.current.userInterfaceIdiom != .phone }
 
     private func openSettings() {
         app.buttons["Settings"].tap()
@@ -102,10 +106,18 @@ final class CryoTunes_PlayerUITests: XCTestCase {
             XCTAssertLessThan(playerCard.frame.midY, stationsCard.frame.midY, "player didn't move to the top")
         } else {
             XCTAssertFalse(stationsCard.exists, "Stations card should wait behind the cog on a narrow screen")
-            setQuadrants(player: "tl", stations: "bl")
-            XCTAssertLessThan(playerCard.frame.midY, screen.midY, "player didn't move to the top half")
+            if hasCardPosition {
+                setQuadrants(player: "tl", stations: "bl")
+                XCTAssertLessThan(playerCard.frame.midY, screen.midY, "player didn't move to the top half")
+            } else {
+                openSettings()
+                XCTAssertFalse(app.staticTexts["Card Position"].exists, "Card Position should not show on a regular iPhone")
+                XCTAssertFalse(app.buttons["quad.player.tl"].exists)
+                closeSettings()
+                XCTAssertGreaterThan(playerCard.frame.midY, screen.midY, "iPhone player card should sit at the bottom")
+            }
         }
-        setQuadrants(player: "br", stations: "bl")
+        if hasCardPosition { setQuadrants(player: "br", stations: "bl") }
     }
 
     /// My Music takes over the Stations card with ‹ Back; Back returns to the stations.

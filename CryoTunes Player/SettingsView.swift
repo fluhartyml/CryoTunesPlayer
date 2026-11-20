@@ -13,6 +13,9 @@ struct SettingsView: View {
     @Bindable var playerManager: MusicPlaybackManager
     var dislikeManager: DislikeManager
     var stationFailureMonitor: StationFailureMonitor
+    /// REM 2026-11-19 22:2x — his word: "can you not have them on a regular iphone?" Card
+    /// Position shows on the Duo, iPad and Mac only; a regular iPhone uses the default spots.
+    var showsCardPosition: Bool = true
     @Environment(\.dismiss) private var dismiss
     @State private var showingFeedback = false
     @State private var showingStationSuggestion = false
@@ -33,8 +36,10 @@ struct SettingsView: View {
                     // Sleep Timer
                     sleepTimerSection
 
-                    // Card Position
-                    cardPositionSection
+                    // Card Position (not on a regular iPhone)
+                    if showsCardPosition {
+                        cardPositionSection
+                    }
 
                     // Manage Dislikes
                     if !dislikeManager.stationsWithDislikes().isEmpty {

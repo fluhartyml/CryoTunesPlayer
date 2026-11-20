@@ -39,8 +39,15 @@ struct ContentView: View {
     @AppStorage(CardQuadrant.playerKey) private var playerQuadrantRaw = CardQuadrant.bottomRight.rawValue
     @AppStorage(CardQuadrant.stationsKey) private var stationsQuadrantRaw = CardQuadrant.bottomLeft.rawValue
     @State private var myMusicOpen = false
-    private var playerQuadrant: CardQuadrant { CardQuadrant(rawValue: playerQuadrantRaw) ?? .bottomRight }
-    private var stationsQuadrant: CardQuadrant { CardQuadrant(rawValue: stationsQuadrantRaw) ?? .bottomLeft }
+    // REM 2026-11-19 22:2x — a regular iPhone has no Card Position setting (his word: "can you
+    // not have them on a regular iphone?"), so it always uses the defaults, even if a spot was
+    // picked in an earlier build.
+    private var playerQuadrant: CardQuadrant {
+        isRegularIPhone ? .bottomRight : (CardQuadrant(rawValue: playerQuadrantRaw) ?? .bottomRight)
+    }
+    private var stationsQuadrant: CardQuadrant {
+        isRegularIPhone ? .bottomLeft : (CardQuadrant(rawValue: stationsQuadrantRaw) ?? .bottomLeft)
+    }
 
     /// Shazam + Settings sit at the top trailing corner when no status column or strip holds
     /// them (a regular iPhone upright, an iPad). Before, they rode the title bar, which retired
@@ -240,7 +247,8 @@ struct ContentView: View {
             showShazamNoMatchSheet = true
         }
         .sheet(isPresented: $showSettings) {
-            SettingsView(playerManager: playerManager, dislikeManager: dislikeManager, stationFailureMonitor: stationFailureMonitor)
+            SettingsView(playerManager: playerManager, dislikeManager: dislikeManager, stationFailureMonitor: stationFailureMonitor,
+                         showsCardPosition: !isRegularIPhone)
         }
         .alert("Couldn't load this station", isPresented: Binding(
             get: { stationFailureMonitor.pendingReport != nil },
