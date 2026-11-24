@@ -144,3 +144,18 @@ struct DislikeTests {
         #expect(manager.isDisliked(songID: song, on: station))
     }
 }
+
+// MARK: - Sleep timer (review 040)
+
+struct SleepTimerTests {
+    @Test func endOfSongIsOffered() {
+        #expect(SleepTimerOption.allCases.contains(.endOfSong))
+    }
+
+    // Voice Control truncates long names: three words max (his rule 11-04).
+    @Test func spokenNamesAreThreeWordsMax() {
+        for option in SleepTimerOption.allCases {
+            #expect(option.accessibilityName.split(separator: " ").count <= 3)
+        }
+    }
+}

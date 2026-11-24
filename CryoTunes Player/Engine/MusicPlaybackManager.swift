@@ -552,8 +552,12 @@ public class MusicPlaybackManager {
             return
         }
 
-        sleepTimerEnd = Date().addingTimeInterval(Double(minutes) * 60)
         timerTask?.cancel()
+        if minutes == SleepTimerOption.endOfSong.rawValue {
+            startEndOfSongTimer()
+            return
+        }
+        sleepTimerEnd = Date().addingTimeInterval(Double(minutes) * 60)
         timerTask = Task { @MainActor [weak self] in
             while !Task.isCancelled {
                 guard let self, let end = self.sleepTimerEnd else { return }
@@ -568,6 +572,30 @@ public class MusicPlaybackManager {
                 let secs = Int(remaining) % 60
                 self.sleepTimerRemaining = String(format: "%d:%02d", mins, secs)
                 try? await Task.sleep(for: .seconds(1))
+            }
+        }
+    }
+
+    /// REM: review 040 (2026-11-24): "end of this song" — stop when the song playing now
+    /// REM: finishes (or the queue moves on), instead of mid-song at a minute mark.
+    private func startEndOfSongTimer() {
+        let startEntryID = player.queue.currentEntry?.id
+        sleepTimerEnd = Date().addingTimeInterval(max(trackDuration - playbackTime, 1))
+        timerTask = Task { @MainActor [weak self] in
+            while !Task.isCancelled {
+                guard let self, self.sleepTimerEnd != nil else { return }
+                let left = self.trackDuration - self.player.playbackTime
+                let moved = self.player.queue.currentEntry?.id != startEntryID
+                if moved || (self.trackDuration > 0 && left <= 1) {
+                    self.stop()
+                    self.sleepTimerEnd = nil
+                    self.sleepTimerRemaining = ""
+                    return
+                }
+                let remaining = max(Int(left), 0)
+                self.sleepTimerEnd = Date().addingTimeInterval(Double(remaining))
+                self.sleepTimerRemaining = String(format: "%d:%02d", remaining / 60, remaining % 60)
+                try? await Task.sleep(for: .milliseconds(500))
             }
         }
     }

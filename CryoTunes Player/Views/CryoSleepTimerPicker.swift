@@ -36,6 +36,7 @@ struct CryoSleepTimerPicker: View {
                                 .strokeBorder(border.opacity(0.4), lineWidth: 1)
                         )
                 }
+                .accessibilityLabel(option.accessibilityName)
             }
         }
         .onChange(of: player.sleepTimerEnd) { _, newValue in

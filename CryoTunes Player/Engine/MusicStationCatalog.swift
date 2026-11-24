@@ -47,6 +47,8 @@ public enum StationSourceType: String, CaseIterable, Sendable {
 
 public enum SleepTimerOption: Int, CaseIterable, Sendable {
     case off = 0
+    /// REM: review 040 (2026-11-24): stop when the current song ends — gentler for sleep.
+    case endOfSong = -1
     case thirtyMin = 30
     case sixtyMin = 60
     case twoHours = 120
@@ -55,10 +57,23 @@ public enum SleepTimerOption: Int, CaseIterable, Sendable {
     public var displayName: String {
         switch self {
         case .off: return "Off"
+        case .endOfSong: return "Song"
         case .thirtyMin: return "30m"
         case .sixtyMin: return "1h"
         case .twoHours: return "2h"
         case .fourHours: return "4h"
+        }
+    }
+
+    /// Spoken name for VoiceOver and Voice Control (three words max).
+    public var accessibilityName: String {
+        switch self {
+        case .off: return "Timer off"
+        case .endOfSong: return "End of song"
+        case .thirtyMin: return "30 minutes"
+        case .sixtyMin: return "1 hour"
+        case .twoHours: return "2 hours"
+        case .fourHours: return "4 hours"
         }
     }
 }

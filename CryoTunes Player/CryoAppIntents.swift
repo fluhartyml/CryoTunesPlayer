@@ -102,6 +102,10 @@ struct StopPlaybackIntent: AppIntent {
 // MARK: - Sleep timer
 
 enum SleepDurationOption: Int, AppEnum {
+    // REM: review 040 (2026-11-24): a timer set by voice can be ended by voice, and
+    // REM: "end of this song" is offered too.
+    case off = 0
+    case endOfSong = -1
     case thirty = 30
     case sixty = 60
     case twoHours = 120
@@ -109,6 +113,8 @@ enum SleepDurationOption: Int, AppEnum {
 
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Sleep Duration"
     static let caseDisplayRepresentations: [SleepDurationOption: DisplayRepresentation] = [
+        .off: "Off",
+        .endOfSong: "End of this song",
         .thirty: "30 minutes",
         .sixty: "1 hour",
         .twoHours: "2 hours",
@@ -126,7 +132,22 @@ struct SleepTimerIntent: AppIntent {
     @MainActor
     func perform() async throws -> some IntentResult & ProvidesDialog {
         CryoPlayerHost.player.startSleepTimer(minutes: duration.rawValue)
-        return .result(dialog: "Sleep timer set for \(duration.rawValue) minutes.")
+        switch duration {
+        case .off: return .result(dialog: "Sleep timer is off.")
+        case .endOfSong: return .result(dialog: "Music will stop at the end of this song.")
+        default: return .result(dialog: "Sleep timer set for \(duration.rawValue) minutes.")
+        }
+    }
+}
+
+struct SleepTimerOffIntent: AppIntent {
+    static let title: LocalizedStringResource = "Turn Off CryoTunes Sleep Timer"
+    static let openAppWhenRun = false
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        CryoPlayerHost.player.startSleepTimer(minutes: 0)
+        return .result(dialog: "Sleep timer is off.")
     }
 }
 
@@ -197,6 +218,15 @@ struct CryoShortcuts: AppShortcutsProvider {
             phrases: ["Set a sleep timer on \(.applicationName)"],
             shortTitle: "Sleep Timer",
             systemImageName: "moon.zzz.fill"
+        )
+        AppShortcut(
+            intent: SleepTimerOffIntent(),
+            phrases: [
+                "Turn off the sleep timer on \(.applicationName)",
+                "Cancel the sleep timer on \(.applicationName)"
+            ],
+            shortTitle: "Timer Off",
+            systemImageName: "moon.zzz"
         )
     }
 }
