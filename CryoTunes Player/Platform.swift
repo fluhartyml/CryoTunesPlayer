@@ -8,7 +8,7 @@
 //
 
 import SwiftUI
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 import UIKit
 import MessageUI
 #else
@@ -23,7 +23,7 @@ enum Platform {
     /// iPhone needs a mail account for the in-app composer. The Mac hands the
     /// message to the default mail app instead, so it can always send.
     static var canSendMail: Bool {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         MFMailComposeViewController.canSendMail()
         #else
         true
@@ -31,7 +31,7 @@ enum Platform {
     }
 
     @MainActor static func open(_ url: URL) {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         UIApplication.shared.open(url)
         #else
         NSWorkspace.shared.open(url)
@@ -55,7 +55,7 @@ enum Platform {
 extension View {
     /// Small centered title on iPhone; the Mac has no inline title mode.
     func inlineNavigationTitle() -> some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         navigationBarTitleDisplayMode(.inline)
         #else
         self
@@ -64,15 +64,25 @@ extension View {
 
     /// The navigation bar exists only on iPhone/iPad.
     func darkNavigationBar() -> some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         toolbarColorScheme(.dark, for: .navigationBar)
         #else
         self
         #endif
     }
 
+    /// REM: review 018 (2026-11-24): Liquid Glass (glassEffect) is unavailable on visionOS;
+    /// REM: Vision Pro's own glass is glassBackgroundEffect. Same card, each platform's glass.
+    @ViewBuilder func cardGlass() -> some View {
+        #if os(visionOS)
+        glassBackgroundEffect(in: RoundedRectangle(cornerRadius: 24))
+        #else
+        glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+        #endif
+    }
+
     func materialNavigationBar() -> some View {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         toolbarBackground(.ultraThinMaterial, for: .navigationBar)
         #else
         self

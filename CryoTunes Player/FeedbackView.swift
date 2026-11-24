@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 import MessageUI
 #endif
 
@@ -125,7 +125,7 @@ struct FeedbackView: View {
                         .foregroundStyle(iceAccent)
                 }
             }
-            #if os(iOS)
+            #if os(iOS) || os(visionOS)
             .sheet(isPresented: $showingMailSheet) {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
@@ -186,7 +186,7 @@ struct FeedbackView: View {
     }
 }
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 struct MailComposeView: UIViewControllerRepresentable {
     let subject: String
     let body: String

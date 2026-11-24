@@ -86,7 +86,7 @@ struct ContentView: View {
     /// REGULAR iPhone only. The Duo (it has a hinge), iPad, and Mac (it runs the iPad app, idiom
     /// .pad) keep exactly what build 89 did. Each device type changes only when he names it.
     private var isRegularIPhone: Bool {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         UIDevice.current.userInterfaceIdiom == .phone && !hasHinge
         #else
         false
@@ -112,7 +112,7 @@ struct ContentView: View {
     // Interface .landscapeLeft = home side on the left, so the notch (top of
     // the phone) is on the right — UIOrientation.h.
     private func readNotchSide() {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         let scene = UIApplication.shared.connectedScenes.first as? UIWindowScene
         notchOnRight = scene?.effectiveGeometry.interfaceOrientation == .landscapeLeft
         #endif
@@ -285,7 +285,7 @@ struct ContentView: View {
         } message: {
             Text("You can send a short note so it gets fixed.")
         }
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         .sheet(isPresented: $showingFailureMailComposer, onDismiss: {
             reportForMail = nil
         }) {
@@ -428,7 +428,7 @@ struct ContentView: View {
             ScrollView { playerCardContents(spacing: 6) }
         }
         .frame(maxWidth: .infinity, maxHeight: fillsQuadrant ? .infinity : nil)
-        .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+        .cardGlass()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("playerCard")
     }
@@ -471,7 +471,7 @@ struct ContentView: View {
         }
         .padding(14)
         .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
-        .glassEffect(.regular.tint(Color.black.opacity(0.35)), in: RoundedRectangle(cornerRadius: 24))
+        .cardGlass()
         .accessibilityElement(children: .contain)
         .accessibilityIdentifier("stationsCard")
     }
@@ -1116,7 +1116,7 @@ struct ShazamNoMatchSheet: View {
 // Reports whether the device has a hinge (an iPhone Duo), and whether it
 // is partly open. Uses UIHingeInteraction, new in iOS 27.1; on 27.0 or a
 // phone without a hinge both stay false.
-#if os(iOS)
+#if os(iOS)  // REM: review 018 — no hinge on Vision Pro; it uses the no-hinge twin below
 struct HingeReader: UIViewRepresentable {
     @Binding var hasHinge: Bool
     @Binding var partlyOpen: Bool
@@ -1143,7 +1143,7 @@ struct HingeReader: UIViewRepresentable {
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
 #else
-// REM: Mac twin — a Mac has no hinge, so hasHinge / partlyOpen stay false.
+// REM: Mac and Vision Pro twin — neither has a hinge, so hasHinge / partlyOpen stay false.
 struct HingeReader: View {
     @Binding var hasHinge: Bool
     @Binding var partlyOpen: Bool

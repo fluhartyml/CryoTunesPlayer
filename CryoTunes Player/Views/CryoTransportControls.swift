@@ -105,7 +105,7 @@ struct CryoTransportControls: View {
                 }
                 .frame(maxWidth: .infinity)
 
-                #if os(iOS)
+                #if os(iOS) || os(visionOS)
                 Button { showShareSheet = true } label: {
                     modeButton(
                         icon: "square.and.arrow.up",
@@ -130,7 +130,7 @@ struct CryoTransportControls: View {
                 #endif
             }
             .padding(.horizontal, 8)
-            #if os(iOS)
+            #if os(iOS) || os(visionOS)
             .sheet(isPresented: $showShareSheet) {
                 if let url = currentSongShareURL {
                     ActivityView(activityItems: [url])
@@ -329,7 +329,7 @@ struct CryoTransportControls: View {
     }
 }
 
-#if os(iOS)
+#if os(iOS) || os(visionOS)
 struct ActivityView: UIViewControllerRepresentable {
     let activityItems: [Any]
 

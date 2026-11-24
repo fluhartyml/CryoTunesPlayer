@@ -46,8 +46,10 @@ struct SettingsView: View {
                         dislikesSection
                     }
 
-                    // AirPlay
+                    // AirPlay (not on Vision Pro, review 018)
+                    #if !os(visionOS)
                     airPlaySection
+                    #endif
 
                     // About
                     aboutSection
@@ -152,12 +154,15 @@ struct SettingsView: View {
 
     // MARK: - AirPlay
 
+    #if !os(visionOS)
     private var airPlaySection: some View {
         sectionContainer(title: "AirPlay") {
             AirPlayButton()
                 .frame(height: 44)
         }
     }
+
+    #endif
 
     // MARK: - Manage Dislikes
 
@@ -340,6 +345,9 @@ struct SettingsView: View {
 
 // MARK: - AirPlay Button (UIKit bridge)
 
+// REM: review 018 (2026-11-24): Vision Pro has no AirPlay route picker (AVRoutePickerView is
+// REM: unavailable there; the wearer picks audio output in Control Center), so the AirPlay row
+// REM: is left out on visionOS rather than shown dead (no placeholders).
 #if os(iOS)
 struct AirPlayButton: UIViewRepresentable {
     func makeUIView(context: Context) -> UIView {
@@ -351,7 +359,7 @@ struct AirPlayButton: UIViewRepresentable {
 
     func updateUIView(_ uiView: UIView, context: Context) {}
 }
-#else
+#elseif os(macOS)
 // REM: Mac twin of the AirPlay picker (AVRoutePickerView is an NSView there).
 struct AirPlayButton: NSViewRepresentable {
     func makeNSView(context: Context) -> NSView {

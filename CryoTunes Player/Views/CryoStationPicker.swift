@@ -360,7 +360,7 @@ struct CryoStationPicker: View {
     // path. No subscription required (library-only without one, +catalog with).
     // REM 11-18: Apple's musicPicker is "unavailable in macOS", so the Mac leaves
     // this row out and My Music's playlists/albums are the path there.
-    #if os(iOS)
+    #if os(iOS) || os(visionOS)
     @available(iOS 27.0, *)
     private var searchAppleMusicButton: some View {
         Button {
@@ -434,7 +434,7 @@ struct CryoStationPicker: View {
     /// Search, Playlists, Albums, Artists — shown under My Music in Settings, and as the whole
     /// card when My Music takes over the Stations card.
     @ViewBuilder private var myMusicContents: some View {
-                #if os(iOS)
+                #if os(iOS) || os(visionOS)
                 if #available(iOS 27.0, *) {
                     searchAppleMusicButton
 

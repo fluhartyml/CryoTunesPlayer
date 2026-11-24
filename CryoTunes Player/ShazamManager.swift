@@ -48,7 +48,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
         }
 
         // REM 11-18: the Mac has no AVAudioSession; AVAudioEngine reads the mic directly.
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         let audioSession = AVAudioSession.sharedInstance()
         do {
             try audioSession.setCategory(.record, mode: .default)
@@ -97,7 +97,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
         isListening = false
 
         // Restore playback audio session
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         try? AVAudioSession.sharedInstance().setActive(true)
         #endif

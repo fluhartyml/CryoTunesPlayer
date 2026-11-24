@@ -98,7 +98,7 @@ final class PlaylistManager {
     struct LibraryWriteUnavailable: Error {}
 
     private static func libraryAdd(_ track: Track, to playlist: Playlist) async throws {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try await MusicLibrary.shared.add(track, to: playlist)
         #else
         throw LibraryWriteUnavailable()
@@ -106,7 +106,7 @@ final class PlaylistManager {
     }
 
     private static func libraryAdd(_ song: Song, to playlist: Playlist) async throws {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try await MusicLibrary.shared.add(song, to: playlist)
         #else
         throw LibraryWriteUnavailable()
@@ -115,7 +115,7 @@ final class PlaylistManager {
 
     /// Adds a song to the user's library (iOS only; throws on the Mac).
     static func libraryAddSong(_ song: Song) async throws {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try await MusicLibrary.shared.add(song)
         #else
         throw LibraryWriteUnavailable()
@@ -124,7 +124,7 @@ final class PlaylistManager {
 
     /// Adds an album to the user's library (iOS only; throws on the Mac).
     static func libraryAddAlbum(_ album: Album) async throws {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         try await MusicLibrary.shared.add(album)
         #else
         throw LibraryWriteUnavailable()
@@ -132,7 +132,7 @@ final class PlaylistManager {
     }
 
     private static func libraryCreatePlaylist(name: String, description: String) async throws -> Playlist {
-        #if os(iOS)
+        #if os(iOS) || os(visionOS)
         return try await MusicLibrary.shared.createPlaylist(name: name, description: description)
         #else
         throw LibraryWriteUnavailable()
