@@ -594,6 +594,21 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
         allCases.filter { $0.isASMR }
     }
 
+    // REM: review 044 (2026-11-24, his "okay lock it", Claude's condition) — the station's
+    // REM: name used to be its saved key everywhere (last station, dislikes, Likes playlist,
+    // REM: Siri/Shortcuts ID), so renaming one would orphan all of them. Each station's name as
+    // REM: of 2026-11-24 is now its PERMANENT key. ⚠️ NEVER change a case's raw value — change
+    // REM: displayName instead. A unit test (StationKeyTests) holds the frozen list.
+    /// Permanent saved key: last station, dislikes, Likes playlist, Siri/Shortcuts ID.
+    public var savedKey: String { rawValue }
+
+    /// What the listener sees and Siri says. Starts identical to the key; free to change.
+    public var displayName: String {
+        switch self {
+        default: return rawValue
+        }
+    }
+
     public static func stations(for decade: BillboardDecade) -> [MusicStationOption] {
         allCases.filter { $0.decade == decade }
     }

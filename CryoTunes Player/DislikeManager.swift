@@ -50,7 +50,7 @@ final class DislikeManager {
 
     /// Record a dislike for the current song on the current station
     func dislike(songID: String, on station: MusicStationOption) {
-        let key = station.rawValue
+        let key = station.savedKey
         var set = dislikes[key] ?? []
         set.insert(songID)
         dislikes[key] = set
@@ -86,13 +86,13 @@ final class DislikeManager {
 
     /// Check if a song is disliked on a given station
     func isDisliked(songID: String, on station: MusicStationOption) -> Bool {
-        dislikes[station.rawValue]?.contains(songID) == true
+        dislikes[station.savedKey]?.contains(songID) == true
     }
 
     /// Reset dislikes for a specific station
     func resetStation(_ station: MusicStationOption) {
-        dislikes.removeValue(forKey: station.rawValue)
-        pendingAdds.removeValue(forKey: station.rawValue)
+        dislikes.removeValue(forKey: station.savedKey)
+        pendingAdds.removeValue(forKey: station.savedKey)
         save()
     }
 
@@ -111,7 +111,7 @@ final class DislikeManager {
                   let station = MusicStationOption(rawValue: key) else { return nil }
             return (station: station, count: songIDs.count)
         }
-        .sorted { $0.station.rawValue < $1.station.rawValue }
+        .sorted { $0.station.displayName < $1.station.displayName }
     }
 
     // MARK: - Persistence

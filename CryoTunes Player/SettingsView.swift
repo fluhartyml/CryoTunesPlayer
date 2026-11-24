@@ -174,7 +174,7 @@ struct SettingsView: View {
             VStack(spacing: 8) {
                 ForEach(dislikeManager.stationsWithDislikes(), id: \.station) { item in
                     HStack {
-                        Text(item.station.rawValue)
+                        Text(item.station.displayName)
                             .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                             .foregroundStyle(iceBlue)
                             .lineLimit(1)

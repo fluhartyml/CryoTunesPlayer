@@ -21,7 +21,7 @@ struct StationAppEntity: AppEntity {
     static let typeDisplayRepresentation: TypeDisplayRepresentation = "Station"
     static let defaultQuery = StationQuery()
 
-    /// `MusicStationOption.rawValue` — which is also the human-readable name.
+    /// `MusicStationOption.savedKey` (permanent, review 044); `name` is the display name Siri says.
     var id: String
     var name: String
 
@@ -33,14 +33,14 @@ struct StationAppEntity: AppEntity {
 struct StationQuery: EntityQuery {
     func entities(for identifiers: [String]) async throws -> [StationAppEntity] {
         identifiers.compactMap { id in
-            MusicStationOption(rawValue: id).map { StationAppEntity(id: $0.rawValue, name: $0.rawValue) }
+            MusicStationOption(rawValue: id).map { StationAppEntity(id: $0.savedKey, name: $0.displayName) }
         }
     }
 
     func suggestedEntities() async throws -> [StationAppEntity] {
         MusicStationOption.allCases
             .filter { $0 != .none }
-            .map { StationAppEntity(id: $0.rawValue, name: $0.rawValue) }
+            .map { StationAppEntity(id: $0.savedKey, name: $0.displayName) }
     }
 }
 

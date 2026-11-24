@@ -54,8 +54,9 @@ final class PlaylistManager {
 
     /// Add a song to a per-station thumbs-up playlist (e.g., "Jazz - CryoTunes")
     func addToStationPlaylist(_ song: Song, station: MusicStationOption) async {
-        let name = "\(station.rawValue) - CryoTunes"
-        let description = "Liked songs from \(station.rawValue) on CryoTunes Player"
+        // Review 044: the playlist is found by name, so it uses the permanent key.
+        let name = "\(station.savedKey) - CryoTunes"
+        let description = "Liked songs from \(station.displayName) on CryoTunes Player"
         await addSong(song, toPlaylistNamed: name, description: description)
     }
 

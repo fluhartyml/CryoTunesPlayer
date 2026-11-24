@@ -121,7 +121,7 @@ struct StationReport: Identifiable {
         the best app it can be. The info below tells me which station
         didn't load and what I need to fix.
 
-        Station that didn't play:  \(station.rawValue)
+        Station that didn't play:  \(station.displayName) [\(station.savedKey)]
         Source type:               \(bucketLabel)
         Search type:               \(String(describing: station.searchType))
         Search term:               \(station.searchTerm)

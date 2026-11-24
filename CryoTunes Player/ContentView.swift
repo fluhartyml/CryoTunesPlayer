@@ -947,7 +947,7 @@ struct ContentView: View {
                     .foregroundStyle(iceAccent.opacity(0.5))
                     .lineLimit(1)
 
-                Text(playerManager.currentStation.rawValue)
+                Text(playerManager.currentStation.displayName)
                     .font(.system(size: 18 * textScale, weight: .regular, design: .monospaced))
                     .foregroundStyle(iceBorder.opacity(0.5))
 

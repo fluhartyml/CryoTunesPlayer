@@ -345,7 +345,7 @@ struct CryoStationPicker: View {
                 Image(systemName: player.currentStation == station ? "checkmark.circle.fill" : "circle")
                     .foregroundStyle(player.currentStation == station ? accent : border.opacity(0.5))
 
-                Text(station.rawValue)
+                Text(station.displayName)
                     .foregroundStyle(player.currentStation == station ? tint : tint.opacity(0.7))
 
                 Spacer()

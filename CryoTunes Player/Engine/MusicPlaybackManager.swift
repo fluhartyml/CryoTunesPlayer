@@ -23,7 +23,7 @@ import MediaPlayer
 public class MusicPlaybackManager {
     public var currentStation: MusicStationOption = .none {
         didSet {
-            UserDefaults.standard.set(currentStation.rawValue, forKey: "lastStation")
+            UserDefaults.standard.set(currentStation.savedKey, forKey: "lastStation")
         }
     }
     public var isPlaying = false
@@ -87,7 +87,7 @@ public class MusicPlaybackManager {
            let station = MusicStationOption(rawValue: savedStation),
            station != .none {
             currentStation = station
-            nowPlayingTitle = UserDefaults.standard.string(forKey: "lastNowPlayingTitle") ?? station.rawValue
+            nowPlayingTitle = UserDefaults.standard.string(forKey: "lastNowPlayingTitle") ?? station.displayName
         }
 
         // Restore shuffle & repeat
