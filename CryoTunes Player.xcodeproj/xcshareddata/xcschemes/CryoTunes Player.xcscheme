@@ -34,6 +34,17 @@
             parallelizable = "NO">
             <BuildableReference
                BuildableIdentifier = "primary"
+               BlueprintIdentifier = "C0E7AD5A2F7574E2008A8596"
+               BuildableName = "CryoTunes PlayerTests.xctest"
+               BlueprintName = "CryoTunes PlayerTests"
+               ReferencedContainer = "container:CryoTunes Player.xcodeproj">
+            </BuildableReference>
+         </TestableReference>
+         <TestableReference
+            skipped = "NO"
+            parallelizable = "NO">
+            <BuildableReference
+               BuildableIdentifier = "primary"
                BlueprintIdentifier = "C0E7AD642F7574E2008A8596"
                BuildableName = "CryoTunes PlayerUITests.xctest"
                BlueprintName = "CryoTunes PlayerUITests"
