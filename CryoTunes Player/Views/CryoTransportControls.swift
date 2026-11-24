@@ -18,6 +18,8 @@ struct CryoTransportControls: View {
     let dark: Color
     let border: Color
     let glow: Color
+    /// Title changes since the last thumbs-down (review 008 undo window).
+    @State private var titleChangesSinceDislike = 0
     @State private var showShareSheet = false
     @State private var ratingState: RatingState = .none
 
@@ -179,8 +181,10 @@ struct CryoTransportControls: View {
         if let lastSongID = dislikeManager.lastDislike?.songID {
             dislikeManager.undoLastDislike()
             ratingState = .none
+            // REM: review 009 (2026-11-24): undo clears the rating to neutral. It used to
+            // REM: send Love, which put the song in the listener's Favorite Songs.
             Task {
-                try? await favoriteManager.favorite(songID: lastSongID)
+                try? await favoriteManager.clearRating(songID: lastSongID)
             }
         }
         player.skipBack()
@@ -196,6 +200,7 @@ struct CryoTransportControls: View {
                 try? await favoriteManager.unfavorite(songID: songID)
             }
             ratingState = .disliked
+            titleChangesSinceDislike = 0
             player.skipForward()
         }
     }
@@ -205,8 +210,11 @@ struct CryoTransportControls: View {
         guard let songID = currentSongID,
               player.currentStation != .none,
               dislikeManager.isDisliked(songID: songID, on: player.currentStation) else {
-            // Song is not disliked — clear undo window from previous skip
-            dislikeManager.clearUndo()
+            // REM: review 008 (2026-11-24): the skip itself changes the title, which used to
+            // REM: wipe the undo at once. Keep it through the song that follows the skip; clear
+            // REM: it when THAT song gives way to the next one.
+            titleChangesSinceDislike += 1
+            if titleChangesSinceDislike > 1 { dislikeManager.clearUndo() }
             return
         }
         // This song is disliked on this station — auto-skip without recording again

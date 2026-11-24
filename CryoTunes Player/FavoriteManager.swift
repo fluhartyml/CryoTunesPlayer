@@ -33,6 +33,16 @@ final class FavoriteManager {
         try await rate(songID: songID, value: -1)
     }
 
+    /// REM: review 009: back to no rating at all (DELETE on the same endpoint).
+    func clearRating(songID: String) async throws {
+        guard let url = URL(string: "https://api.music.apple.com/v1/me/ratings/songs/\(songID)") else {
+            return
+        }
+        var urlRequest = URLRequest(url: url)
+        urlRequest.httpMethod = "DELETE"
+        _ = try await MusicDataRequest(urlRequest: urlRequest).response()
+    }
+
     private func rate(songID: String, value: Int) async throws {
         guard let url = URL(string: "https://api.music.apple.com/v1/me/ratings/songs/\(songID)") else {
             return
