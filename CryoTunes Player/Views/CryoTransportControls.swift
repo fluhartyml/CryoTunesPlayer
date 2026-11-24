@@ -128,6 +128,40 @@ struct CryoTransportControls: View {
                         .frame(maxWidth: .infinity)
                 }
                 #endif
+
+                // REM: review 041 (2026-11-24, his "okay lock it") — AirPlay on the player card, one
+                // tap from the player (it stays in Settings too). The system route picker draws its
+                // own glyph and opens Apple's menu; the whole cell is the tap target. Fixed width
+                // (a transport-button cell) so Like / Skip / Share keep their room on a phone.
+                // Not on Vision Pro: no route picker there (review 018).
+                #if !os(visionOS)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6)
+                        .fill(
+                            LinearGradient(
+                                colors: [dark.opacity(0.8), Color(red: 0.08, green: 0.12, blue: 0.2)],
+                                startPoint: .top,
+                                endPoint: .bottom
+                            )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .strokeBorder(
+                                    LinearGradient(
+                                        colors: [border.opacity(0.6), border.opacity(0.2)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    ),
+                                    lineWidth: 1.5
+                                )
+                        )
+                    AirPlayButton()
+                }
+                .frame(width: 52, height: 36)
+                .accessibilityElement(children: .contain)
+                .accessibilityLabel("AirPlay")
+                .accessibilityIdentifier("playerCard.airPlay")
+                #endif
             }
             .padding(.horizontal, 8)
             #if os(iOS) || os(visionOS)
