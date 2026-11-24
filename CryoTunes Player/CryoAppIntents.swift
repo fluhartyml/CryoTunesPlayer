@@ -59,7 +59,14 @@ struct PlayStationIntent: AppIntent {
         guard let option = MusicStationOption(rawValue: station.id) else {
             return .result(dialog: "I couldn't find that station.")
         }
-        await CryoPlayerHost.player.play(station: option)
+        let player = CryoPlayerHost.player
+        await player.play(station: option)
+        // REM: review 045 (2026-11-24, his "okay lock it") — Siri used to say "Playing …" even
+        // REM: when the station failed. Same check as review 003: after the play call, only a
+        // REM: player that is playing THIS station with no error counts as playing.
+        guard player.isPlaying, player.currentStation == option, player.errorMessage.isEmpty else {
+            return .result(dialog: "\(station.name) isn't available right now.")
+        }
         return .result(dialog: "Playing \(station.name) on CryoTunes.")
     }
 }
