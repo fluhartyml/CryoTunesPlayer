@@ -158,7 +158,10 @@ struct CryoTransportControls: View {
                 if player.currentStation != .none {
                     await playlistManager.addToStationPlaylist(song, station: player.currentStation)
                 }
-            } catch {}
+            } catch {
+                // REM: review 035 (2026-11-24): stays quiet on purpose. On the Mac this add always
+                // REM: throws (no library writes there) and the favorite below still lights Like.
+            }
             // REM 11-18: on the Mac the library add above always throws (Apple has no
             // library writes there), so Like lights up when the favorite lands instead.
             if (try? await favoriteManager.favorite(songID: song.id.rawValue)) != nil {

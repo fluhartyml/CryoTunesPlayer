@@ -48,6 +48,7 @@ final class PlaylistManager {
             }
         } catch {
             print("PlaylistManager: failed to create album playlist \"\(name)\": \(error)")
+            await MainActor.run { CryoPlayerHost.player.showError("Couldn't create the \(name) playlist.") }
         }
     }
 
@@ -71,6 +72,7 @@ final class PlaylistManager {
             try await Self.libraryAdd(song, to: playlist)
         } catch {
             print("PlaylistManager: failed to add song to \"\(name)\": \(error)")
+            await MainActor.run { CryoPlayerHost.player.showError("Couldn't add the song to \(name).") }
         }
     }
 

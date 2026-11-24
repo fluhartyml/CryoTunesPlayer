@@ -55,6 +55,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             try audioSession.setActive(true)
         } catch {
             print("Audio session error: \(error)")
+            await MainActor.run { CryoPlayerHost.player.showError("Shazam can't use the microphone right now.") }
             await MainActor.run { isListening = false }
             return
         }
@@ -76,6 +77,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             // REM: review 014: a failed start used to leave the tap installed, and the next
             // REM: press installed a second one, which crashes AVAudioEngine. Clean up now.
             print("Audio engine error: \(error)")
+            await MainActor.run { CryoPlayerHost.player.showError("Shazam can't use the microphone right now.") }
             stopListening()
             return
         }
@@ -134,6 +136,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             await MainActor.run { addedToLibrary = true }
         } catch {
             print("Add to library error: \(error)")
+            await MainActor.run { CryoPlayerHost.player.showError("Couldn't add that song to your library.") }
         }
     }
 

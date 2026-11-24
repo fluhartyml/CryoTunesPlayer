@@ -762,6 +762,7 @@ struct ContentView: View {
                 }
             } catch {
                 print("Open album error: \(error)")
+                await MainActor.run { playerManager.showError("Couldn't open that album. Check your connection.") }
             }
         }
     }
@@ -819,6 +820,7 @@ struct ContentView: View {
                 }
             } catch {
                 print("Add album error: \(error)")
+                await MainActor.run { playerManager.showError("Couldn't add that album to your library.") }
             }
         }
     }
@@ -836,6 +838,7 @@ struct ContentView: View {
                 }
             } catch {
                 print("Play album error: \(error)")
+                await MainActor.run { playerManager.showError("Unable to play that album. Check your connection.") }
             }
         }
     }
@@ -851,6 +854,7 @@ struct ContentView: View {
                 }
             } catch {
                 print("Open in iTunes Store error: \(error)")
+                await MainActor.run { playerManager.showError("Couldn't open the iTunes Store.") }
             }
         }
     }

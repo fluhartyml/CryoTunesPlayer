@@ -44,6 +44,9 @@ public class MusicPlaybackManager {
     public var sleepTimerEnd: Date?
     public var sleepTimerRemaining = ""
     public var errorMessage = ""
+    /// REM: review 035 (2026-11-24): errors that used to stop at print() now show on the
+    /// REM: player card through this one message (the same line 002 built).
+    public func showError(_ message: String) { errorMessage = message }
     /// Shown on the player card when a station finds nothing (review 003).
     public static let stationUnavailable = "This station isn't available right now."
     public var playbackTime: TimeInterval = 0
