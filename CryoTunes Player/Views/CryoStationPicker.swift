@@ -32,6 +32,8 @@ struct CryoStationPicker: View {
     /// REM: review 006 (2026-11-24): tapping an artist opens their songs right under the row.
     @State private var expandedArtistID: MusicItemID?
     @State private var playlistTrackCounts: [MusicItemID: Int] = [:]
+    /// Review 046: one count run at a time.
+    @State private var countsLoading = false
     // Native Apple Music picker (iOS 27+). Gated at the call site.
     @State private var showMusicPicker = false
     @State private var pickedSongs: [Song] = []   // picker is multi-select; we play the first
@@ -405,9 +407,16 @@ struct CryoStationPicker: View {
                     } else {
                         myMusicExpanded.toggle()
                     }
-                    if myMusicExpanded && !libraryLoaded {
+                    // REM: review 046 (2026-11-24, his "okay lock it") — the library used to load once
+                    // REM: per launch, so a new "Shazamed Songs" or Likes playlist stayed hidden until
+                    // REM: a restart. It now reloads every time My Music opens; counts are refetched.
+                    if myMusicExpanded {
                         libraryLoaded = true
-                        Task { await player.loadLibrary() }
+                        Task {
+                            await player.loadLibrary()
+                            playlistTrackCounts = [:]
+                            if playlistsExpanded { loadAllPlaylistCounts() }
+                        }
                     }
                 }
             } label: {
@@ -589,16 +598,21 @@ struct CryoStationPicker: View {
 
     // MARK: - Playlist Track Count Loader
 
+    // REM: review 046 (2026-11-24) — the sheet asked to use "the count the library already
+    // REM: reports", but MusicKit gives a trackCount only to Album, not Playlist (checked in the
+    // REM: iOS 27.1 SDK's MusicKit.swiftinterface). So the counts stay, made lighter: ONE task
+    // REM: fetching one playlist at a time (was every playlist at once), only while Playlists is
+    // REM: open, skipping any already counted, never two runs at the same time.
     private func loadAllPlaylistCounts() {
-        for playlist in player.libraryPlaylists {
-            guard playlistTrackCounts[playlist.id] == nil else { continue }
-            Task {
+        guard !countsLoading else { return }
+        countsLoading = true
+        let playlists = player.libraryPlaylists
+        Task {
+            for playlist in playlists where playlistTrackCounts[playlist.id] == nil {
                 let detailed = try? await playlist.with([.tracks])
-                let count = detailed?.tracks?.count ?? 0
-                await MainActor.run {
-                    playlistTrackCounts[playlist.id] = count
-                }
+                playlistTrackCounts[playlist.id] = detailed?.tracks?.count ?? 0
             }
+            countsLoading = false
         }
     }
 
