@@ -1,5 +1,5 @@
 // MARK: - CryoTunes Player — Developer Notes
-// Version: 1.0
+// Version: 4.0.1
 // Developer: Michael Lee Fluharty
 // Engineered with: Claude by Anthropic
 // License: GPL v3
@@ -14,10 +14,41 @@
 // REM: knowledge). So CryoTunes needs a CarPlay audio app (CarPlay templates +
 // REM: the CarPlay audio entitlement) to appear there and in cars. Not started.
 // REM: Raise it with him FIRST when a CryoTunes session opens; build only on his yes.
+// REM: 2026-11-24: his yes (review sheet line 032). He SUBMITTED the CarPlay entitlement
+// REM: request to Apple 11-24. The CarPlay Entitlement Addendum §2 forbids using the
+// REM: CarPlay APIs until Apple grants the entitlement — no CarPlay code before approval.
 // ############################################################
 //
 // ============================================================
-// CURRENT STATUS (JUN 28 2026 — v3.0 dev on the iOS 27 / Xcode 27 betas)
+// CURRENT STATUS (NOV 24 2026 — v4.0.1, build = git commit count)
+// ============================================================
+//
+// REM: Source review 2026-11-24: Grok's 56-line review sheet
+// REM: (~/Downloads/CryoTunes-Player-Amber-Sheet.html) — every line LOCKED with his
+// REM: word. Work order = sheet line 054. Highlights: error messages shown on the
+// REM: player card (002/035); failed station offers "Tell the Developer" (003);
+// REM: playlist/artist/album playback fixes (004–007); dislike undo + iCloud merge
+// REM: (008–013); Shazam mic fixes (014–017); Vision Pro kept, build fixed (018);
+// REM: location + unused entitlements removed (019/020); privacy manifest (023);
+// REM: feedback email = message + app version only (025/026).
+//
+// v4.0 / 4.0.1 (2026-11-18 → 11-20):
+//   • LCD ticker and weather RETIRED (his word 11-19). Album art floods the display
+//     as wallpaper: blurred fill behind, whole cover on top.
+//   • Quadrant cards (player, Stations, Sleep Timer); Card Position in Settings
+//     (not on a regular iPhone — cards use the default spots there).
+//   • Stop keeps the album art blank until playback really resumes.
+//   • Builds 90–91 layout changes apply to a regular iPhone only; Duo, iPad and
+//     Mac keep build 89's layout. Mac build added (Mac icon sizes 16–512).
+//   • Shuffle: icon and word shrink together (intentional, his 11-20 word).
+//   • Universal image (4.0.1).
+//
+// v3.0.x (2026-07 → 10-31): 3.0 approved 10-19; 3.0.1 approved 10-31. Year
+//   channels play only their own year (top 25 playlists), 2026 added 11-09.
+//   No non-exempt encryption declared (10-31).
+//
+// ============================================================
+// STATUS (JUN 28 2026 — v3.0 dev on the iOS 27 / Xcode 27 betas) — history
 // ============================================================
 //
 // v3.0 in development. Today's session (all app-target only, no CryoKit edits):
@@ -41,7 +72,9 @@
 //     handler (it treats the station as a search term) — the intents are
 //     reliable via TAP (Shortcuts / Action Button / Control Center), not always
 //     via Siri voice. Apple-side friction, not a CryoTunes bug.
-//   • Widget extension target added. Small interactive transport-controls
+//   • [REMOVED 2026-06-28, commit 28eb21e — the Xcode template widget was never
+//     wanted; Lock Screen / StandBy / Control Center now-playing come free from
+//     MusicKit.] Widget extension target added. Small interactive transport-controls
 //     widget (prev / play-pause / next) built via lightweight widget intents
 //     driving ApplicationMusicPlayer directly. Responsive ladder planned:
 //     small = controls → medium = + now-playing → large = + find-music /
@@ -56,9 +89,9 @@
 // object directly via ArtworkImage (Apple's supported path) instead of resolving
 // a URL. See MusicPlaybackManager.currentArtwork + ContentView.albumArtView.
 //
-// CryoKit dependency: DIAMOND RULE in effect.
-// Claude may NOT remove, subtract, or modify code within CryoKit.
-// Claude may add to it with express written consent from human ONLY.
+// CryoKit: RETIRED. His word 2026-11-24: "we retired cryokit and its hard coded in
+// the apps now." The Engine/ files are CryoTunes' own code (vendored 2026-06-28,
+// commit 344b210). The old Diamond Rule does NOT apply to them.
 //
 // ============================================================
 // PROJECT ROADMAP
@@ -81,33 +114,33 @@
 //       - Genre stations: Big Band, Jazz Age, Ragtime, etc.
 //       - Three-level navigation: Category → Decade → Year
 //   [x] Album art display with song title + artist
-//   [x] LCD ticker (time, date, local weather via WeatherKit)
+//   [x] LCD ticker (time, date, local weather via WeatherKit) — RETIRED 2026-11-19
 //   [x] Station persistence across launches (no auto-play)
 //   [ ] Custom background image (PhotosPicker, user-defined, persisted)
-//   [ ] Sleep timer (30m, 1h, 2h, 4h)
-//   [ ] AirPlay 2 output picker
+//   [x] Sleep timer (30m, 1h, 2h, 4h)
+//   [x] AirPlay 2 output picker (Settings; player card planned — sheet 041)
 //   [x] Play/Pause/Skip/Stop controls
-//   [ ] Now Playing info on lock screen
+//   [x] Now Playing info on lock screen (free from MusicKit)
 //   [x] Settings screen
 //
 // v1.1+ — Future Enhancements (raise iOS minimum as needed)
 // ----------------------------------------------------------
 //   [ ] Tally Matrix Clock leader/follower sync via CloudKit
 //   [ ] iCloud sync for settings + background image across devices
-//   [ ] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
+//   [x] ShazamKit song recognition (requires NSMicrophoneUsageDescription)
 //   [ ] Dark/light automatic icon switching (iOS 18+)
 //   [ ] Additional color themes beyond ice blue
 //   [x] Landscape mode — adaptive two-column, Fold-ready (2026-06-28)
-//   [ ] iPad support
-//   [~] Widget for home screen — small controls widget done; medium/large/
-//       extra-large (now-playing, find-music, playlists) in progress (2026-06-28)
+//   [x] iPad support
+//   [-] Widget for home screen — REMOVED on purpose 2026-06-28 (see above)
 //   [x] iOS 27 native Music Picker — "Search Apple Music" in My Music (2026-06-28)
 //   [x] Siri / Shortcuts App Intents — play station, transport, sleep timer (2026-06-28)
 //   [ ] Easter egg (hidden interaction — tap title or idle screen)
 //   [ ] Queue position persistence (resume exact track on relaunch)
 //   [ ] Custom background image (z-ordering issue: image renders over UI — needs proper layer fix)
 //   [ ] Background image persistence survives clean build (dev-only issue, works for App Store users)
-//   [ ] Graceful error messages (no subscription, no network)
+//   [ ] Graceful error messages (no subscription, no network) — planned, sheet 002/003/035
+//   [ ] CarPlay audio app — entitlement requested 2026-11-24, waiting on Apple
 //
 // ============================================================
 // APP STORE CONNECT
@@ -118,13 +151,13 @@
 //
 // App Name: CryoTunes Player
 // App Apple ID: 6761222456
-// Bundle ID: com.Tangerine.CryoTunes-Player
+// Bundle ID: com.Tangerine.CryoTunesPlayer
 // SKU: CryoTunesPlayer
 // Category: Music
 // URL: https://apps.apple.com/us/app/cryotunes-player/id6761222456
 //
-// Current Version: 3.0 (build 1) — in development on iOS 27 / Xcode 27 betas
-// Status: Not yet submitted (v3.0 dev)
+// Current Version: 4.0.1 (build = git commit count, 101 at 2026-11-24)
+// Status: 3.0.1 approved 2026-10-31; 4.0.1 submission status ⚠️ verify in App Store Connect
 //
 // Subtitle: Designed for iPad
 //
@@ -136,7 +169,7 @@
 // Description:
 //   CryoTunes Player is a retro 90s-inspired music player with
 //   an ice blue LCD aesthetic. Stream 80+ curated stations across
-//   genres, Billboard decade charts from 1958 to 2025, nature
+//   genres, Billboard decade charts from 1958 to 2026, nature
 //   sounds, focus frequencies, and ASMR white noise — or browse
 //   your own music library with playlists, albums, and artists.
 //
@@ -170,7 +203,10 @@
 //   v2.2 (2026-03-31) — CryoKit shared views, submitted
 //   v2.3 (2026-04-01) — Progress bar, next/prev track icons
 //   v2.4 (2026-04-02) — Playlist reveal, song counts, 18pt fonts
-//   v3.0 (2026-06-28) — Landscape, iOS 27 Music Picker, Siri/Shortcuts intents, controls widget (dev)
+//   v3.0 (2026-06-28) — Landscape, iOS 27 Music Picker, Siri/Shortcuts intents (widget removed same day); approved 2026-10-19
+//   v3.0.1 (2026-10-19) — Duo layouts, mode-button fits; approved 2026-10-31
+//   v4.0 (2026-11-19) — LCD + weather retired, album-art wallpaper, quadrant cards
+//   v4.0.1 (2026-11-20) — Universal image, Shuffle fits
 //
 // ============================================================
 // SHAKEDOWN CHECKLIST — Complete before App Store submission
@@ -229,7 +265,7 @@
 //
 // App Store Prep:
 //   [ ] Version number set (1.0, build 1)
-//   [ ] Bundle ID confirmed (com.Tangerine.CryoTunes-Player)
+//   [ ] Bundle ID confirmed (com.Tangerine.CryoTunesPlayer)
 //   [ ] App category set (Music)
 //   [ ] 10 screenshots curated
 //   [ ] App description written
