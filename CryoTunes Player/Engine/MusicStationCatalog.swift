@@ -24,10 +24,6 @@ public enum BillboardDecade: String, CaseIterable, Sendable {
     case d2000s = "2000s"
     case d2010s = "2010s"
     case d2020s = "2020s"
-
-    public static func decades(for category: StationCategory) -> [BillboardDecade] {
-        category == .billboard ? allCases : []
-    }
 }
 
 public enum StationSearchType: Sendable {
@@ -586,16 +582,5 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
     public static func stations(for decade: BillboardDecade) -> [MusicStationOption] {
         allCases.filter { $0.decade == decade }
     }
-
-    /// Stations grouped by source type — ready for reveal UI sections.
-    public static var groupedBySource: [(source: StationSourceType, stations: [MusicStationOption])] {
-        let all = allCases.filter { $0 != .none }
-        let grouped = Dictionary(grouping: all) { $0.sourceType }
-        // Order: Apple Radio, Apple Music, Billboard, Soundscapes, Focus
-        let order: [StationSourceType] = [.appleRadio, .curatedSearch, .billboard, .soundscape, .focus]
-        return order.compactMap { source in
-            guard let stations = grouped[source], !stations.isEmpty else { return nil }
-            return (source: source, stations: stations)
-        }
-    }
+    // REM: review 034 (2026-11-24): groupedBySource and decades(for:) had no callers; removed.
 }

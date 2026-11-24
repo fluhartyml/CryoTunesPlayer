@@ -18,7 +18,6 @@
 import Foundation
 import MusicKit
 import MediaPlayer
-import Combine
 
 @Observable
 public class MusicPlaybackManager {
@@ -35,7 +34,6 @@ public class MusicPlaybackManager {
     }
     public var currentSongTitle = ""
     public var currentArtistName = ""
-    public var currentArtworkURL: URL?
     /// The now-playing entry's MusicKit Artwork object. Rendered via `ArtworkImage`
     /// (the Apple-supported path) instead of resolving `.url()` + `AsyncImage`, which
     /// returns a `musickit://` URL that fails to load on the iOS 27 beta.
@@ -45,7 +43,6 @@ public class MusicPlaybackManager {
     private var stoppedByUser = false
     public var sleepTimerEnd: Date?
     public var sleepTimerRemaining = ""
-    public var isAuthorized = false
     public var errorMessage = ""
     /// Shown on the player card when a station finds nothing (review 003).
     public static let stationUnavailable = "This station isn't available right now."
@@ -104,7 +101,6 @@ public class MusicPlaybackManager {
 
     public func requestAuthorization() async -> Bool {
         let status = await MusicAuthorization.request()
-        await MainActor.run { isAuthorized = status == .authorized }
         return status == .authorized
     }
 
@@ -327,7 +323,6 @@ public class MusicPlaybackManager {
         nowPlayingTitle = ""
         currentSongTitle = ""
         currentArtistName = ""
-        currentArtworkURL = nil
         currentArtwork = nil
     }
 
@@ -393,9 +388,6 @@ public class MusicPlaybackManager {
                     self.currentSongTitle = entry.title
                     self.currentArtistName = entry.subtitle ?? ""
                     self.currentArtwork = entry.artwork
-                    if let artwork = entry.artwork {
-                        self.currentArtworkURL = artwork.url(width: 300, height: 300)
-                    }
                 }
                 self.isPlaying = self.player.state.playbackStatus == .playing
                 self.playbackTime = self.player.playbackTime
@@ -449,21 +441,9 @@ public class MusicPlaybackManager {
         }
     }
 
-    public func loadSongs(for album: Album) async {
-        do {
-            let detailedAlbum = try await album.with([.tracks])
-            let tracks = detailedAlbum.tracks ?? []
-            await MainActor.run {
-                librarySongs = tracks.compactMap { track in
-                    if case let .song(song) = track { return song }
-                    return nil
-                }
-            }
-        } catch {
-            await MainActor.run { errorMessage = "Unable to load songs. Check your connection." }
-        }
-    }
-
+    // REM: review 034 (2026-11-24): removed dead code nothing read: currentArtworkURL,
+    // REM: isAuthorized, loadSongs(for: Album), playLibraryItem, import Combine.
+    // REM: librarySongs + loadSongs(for: Artist) stay — the artist song list (006) uses them.
     public func loadSongs(for artist: Artist) async {
         do {
             var request = MusicLibraryRequest<Song>()
@@ -475,23 +455,6 @@ public class MusicPlaybackManager {
             }
         } catch {
             await MainActor.run { errorMessage = "Unable to load songs. Check your connection." }
-        }
-    }
-
-    public func playLibraryItem(_ item: any MusicCatalogSearchable & PlayableMusicItem) async {
-        let authorized = await requestAuthorization()
-        guard authorized else { return }
-
-        do {
-            player.queue = [item]
-            try await player.prepareToPlay()
-            try await player.play()
-            await MainActor.run {
-                currentStation = .none
-                isPlaying = true
-            }
-        } catch {
-            await MainActor.run { errorMessage = "Unable to play. Check your connection." }
         }
     }
 
