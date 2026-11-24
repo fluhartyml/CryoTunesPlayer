@@ -70,7 +70,8 @@ final class StationFailureMonitor {
         if reportedThisSession.contains(station) { return }
         guard MusicAuthorization.currentStatus == .authorized else { return }
         guard lastKnownPath == .satisfied else { return }
-        guard Platform.canSendMail else { return }
+        // REM: no Mail account is fine — Tell the Developer falls back to the
+        // REM: listener's own mail app (sheet 003, 2026-11-24).
 
         reportedThisSession.insert(station)
         pendingReport = StationReport(station: station)
@@ -94,20 +95,16 @@ struct StationReport: Identifiable {
     var emailSubject: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
-        return "CryoTunes Player broken station: \(station.rawValue) — v\(v) (\(b))"
+        // REM: sheet 003 (his "okay lock it" 2026-11-24): "Station error: <station>".
+        return "Station error: \(station.rawValue) — CryoTunes Player v\(v) (\(b))"
     }
 
     var emailBody: String {
         let v = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?"
         let b = Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"
 
-        var sysinfo = utsname()
-        uname(&sysinfo)
-        let model = withUnsafePointer(to: &sysinfo.machine) {
-            $0.withMemoryRebound(to: CChar.self, capacity: 1) {
-                String(validatingCString: $0) ?? "Unknown"
-            }
-        }
+        // REM: sheet 026 (locked 2026-11-24): no device model or OS version —
+        // REM: station details + app version only, his privacy standard.
         let formatter = DateFormatter()
         formatter.dateFormat = "yyyy-MM-dd HH:mm zzz"
 
@@ -131,11 +128,9 @@ struct StationReport: Identifiable {
         Station ID:                \(stationID)
 
         App:     CryoTunes Player \(v) (\(b))
-        Device:  \(model)
-        System:  \(Platform.systemDescription)
         Time:    \(formatter.string(from: timestamp))
 
-        —— Notes about the broken station (optional) ——
+        —— What happened? (optional) ——
 
 
         —— Any other stations you'd like to see in CryoTunes? (optional) ——

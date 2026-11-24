@@ -282,7 +282,34 @@ struct SettingsView: View {
                 .sheet(isPresented: $showingFeedback) {
                     FeedbackView(appName: "CryoTunes Player")
                 }
+                // REM: review sheet 028 (his "okay lock it" 2026-11-24): Privacy Policy and
+                // REM: Support rows, linking the pages on fluharty.me.
+                Divider().overlay(iceBorder.opacity(0.2))
+                aboutLink("Privacy Policy", symbol: "hand.raised",
+                          url: "https://fluharty.me/privacy.html")
+                Divider().overlay(iceBorder.opacity(0.2))
+                aboutLink("Support", symbol: "questionmark.circle",
+                          url: "https://fluharty.me/cryotunes-player-support.html")
             }
+        }
+    }
+
+    @ViewBuilder
+    private func aboutLink(_ title: String, symbol: String, url: String) -> some View {
+        if let destination = URL(string: url) {
+            Link(destination: destination) {
+                HStack(spacing: 4) {
+                    Image(systemName: symbol)
+                        .font(.system(size: 18))
+                    Text(title)
+                        .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    Spacer()
+                    Image(systemName: "arrow.up.right")
+                        .font(.system(size: 18))
+                }
+                .foregroundStyle(iceAccent)
+            }
+            .accessibilityLabel(title)
         }
     }
 

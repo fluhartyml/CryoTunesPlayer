@@ -17,7 +17,6 @@ struct FeedbackView: View {
     @State private var feedbackType: FeedbackType = .bug
     @State private var feedbackText = ""
     @State private var showingMailSheet = false
-    @State private var showingMailUnavailable = false
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
     private let iceDark = Color(red: 0.12, green: 0.18, blue: 0.28)
@@ -36,26 +35,13 @@ struct FeedbackView: View {
         return "v\(v) (\(b))"
     }
 
-    private var deviceInfo: String {
-        var sysinfo = utsname()
-        uname(&sysinfo)
-        let model = withUnsafePointer(to: &sysinfo.machine) {
-            $0.withMemoryRebound(to: CChar.self, capacity: 1) { String(validatingCString: $0) ?? "Unknown" }
-        }
-        let storage: String = {
-            guard let attrs = try? FileManager.default.attributesOfFileSystem(forPath: NSHomeDirectory()),
-                  let free = attrs[.systemFreeSize] as? Int64 else { return "Unknown" }
-            return ByteCountFormatter.string(fromByteCount: free, countStyle: .file)
-        }()
-        return """
-
-        --- Device Info ---
-        App: \(appName) \(version)
-        Device: \(model)
-        System: \(Platform.systemDescription)
-        Storage Available: \(storage)
-        Locale: \(Locale.current.identifier)
-        """
+    // REM: his standard for all apps (2026-09-18): "i dont want personal information.
+    // REM: i just want a pipeline to communicate with users." Review sheet 025, locked
+    // REM: 2026-11-24: the email carries ONLY the message and the app version — no
+    // REM: device model, OS, free storage or locale. (Dropping the free-storage read
+    // REM: also removes a required-reason API — sheet 023.)
+    private var appLine: String {
+        "App: \(appName) \(version)"
     }
 
     var body: some View {
@@ -96,7 +82,7 @@ struct FeedbackView: View {
                         #if os(macOS)
                         // REM: Mac — hand the message to the mail app, then close.
                         Platform.composeMail(
-                            to: "michael.fluharty@mac.com",
+                            to: Platform.contactEmail,
                             subject: "\(appName) \(feedbackType.rawValue) — \(version)",
                             body: bracketedBody)
                         dismiss()
@@ -104,7 +90,12 @@ struct FeedbackView: View {
                         if Platform.canSendMail {
                             showingMailSheet = true
                         } else {
-                            showingMailUnavailable = true
+                            // REM: no Mail account — hand it to the listener's own mail app.
+                            Platform.composeMail(
+                                to: Platform.contactEmail,
+                                subject: "\(appName) \(feedbackType.rawValue) — \(version)",
+                                body: bracketedBody)
+                            dismiss()
                         }
                         #endif
                     } label: {
@@ -139,15 +130,10 @@ struct FeedbackView: View {
                 MailComposeView(
                     subject: "\(appName) \(feedbackType.rawValue) — \(version)",
                     body: bracketedBody,
-                    recipient: "michael.fluharty@mac.com"
+                    recipient: Platform.contactEmail
                 )
             }
             #endif
-            .alert("Mail Not Available", isPresented: $showingMailUnavailable) {
-                Button("OK") { }
-            } message: {
-                Text("Please configure a mail account in Settings, or email michael.fluharty@mac.com directly.")
-            }
             .onAppear {
                 feedbackType = initialType
             }
@@ -193,7 +179,7 @@ struct FeedbackView: View {
         \(feedbackText)
 
 
-        \(deviceInfo)
+        \(appLine)
 
         — Michael
         """

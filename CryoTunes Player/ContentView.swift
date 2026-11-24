@@ -250,32 +250,40 @@ struct ContentView: View {
             SettingsView(playerManager: playerManager, dislikeManager: dislikeManager, stationFailureMonitor: stationFailureMonitor,
                          showsCardPosition: !isRegularIPhone)
         }
-        .alert("Couldn't load this station", isPresented: Binding(
+        .alert("This station isn't available right now.", isPresented: Binding(
             get: { stationFailureMonitor.pendingReport != nil },
             set: { isShowing in
                 if !isShowing { stationFailureMonitor.dismiss() }
             }
         )) {
-            Button("Send Report") {
+            Button("Tell the Developer") {
                 #if os(macOS)
                 // REM: Mac — the mail app composes it; no in-app sheet.
                 if let report = stationFailureMonitor.pendingReport {
-                    Platform.composeMail(to: "michael.fluharty@mac.com",
+                    Platform.composeMail(to: Platform.contactEmail,
                                          subject: report.emailSubject,
                                          body: report.emailBody)
                 }
                 stationFailureMonitor.dismiss()
                 #else
-                reportForMail = stationFailureMonitor.pendingReport
-                stationFailureMonitor.dismiss()
-                showingFailureMailComposer = true
+                if Platform.canSendMail {
+                    reportForMail = stationFailureMonitor.pendingReport
+                    stationFailureMonitor.dismiss()
+                    showingFailureMailComposer = true
+                } else if let report = stationFailureMonitor.pendingReport {
+                    // REM: no Mail account — the listener's own mail app (sheet 003).
+                    Platform.composeMail(to: Platform.contactEmail,
+                                         subject: report.emailSubject,
+                                         body: report.emailBody)
+                    stationFailureMonitor.dismiss()
+                }
                 #endif
             }
             Button("Not Now", role: .cancel) {
                 stationFailureMonitor.dismiss()
             }
         } message: {
-            Text("Want to send a report so this station can be fixed?")
+            Text("You can send a short note so it gets fixed.")
         }
         #if os(iOS)
         .sheet(isPresented: $showingFailureMailComposer, onDismiss: {
@@ -285,7 +293,7 @@ struct ContentView: View {
                 MailComposeView(
                     subject: report.emailSubject,
                     body: report.emailBody,
-                    recipient: "michael.fluharty@mac.com"
+                    recipient: Platform.contactEmail
                 )
             }
         }

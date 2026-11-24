@@ -16,14 +16,9 @@ import AppKit
 #endif
 
 enum Platform {
-    /// "iOS 27.3" / "macOS Version 27.2 (Build …)" for feedback and failure reports.
-    static var systemDescription: String {
-        #if os(iOS)
-        "\(UIDevice.current.systemName) \(UIDevice.current.systemVersion)"
-        #else
-        "macOS \(ProcessInfo.processInfo.operatingSystemVersionString)"
-        #endif
-    }
+    /// REM: review sheet 028 (his "okay lock it" 2026-11-24): the contact address
+    /// lives in ONE place. It was typed in five.
+    static let contactEmail = "michael.fluharty@mac.com"
 
     /// iPhone needs a mail account for the in-app composer. The Mac hands the
     /// message to the default mail app instead, so it can always send.
