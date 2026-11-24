@@ -502,13 +502,8 @@ struct ContentView: View {
         }
     }
 
-    // Album art with its long-press context menu.
-    private var albumArtSection: some View {
-        albumArtView
-            .contextMenu { albumMenuItems }
-    }
-
-    /// The album art's long-press menu — shared by the framed art and the flooded art.
+    /// The album art's long-press menu, on the flooded (wallpaper) art.
+    /// REM: review 033 (2026-11-24): the framed-art layout it was shared with is gone.
     @ViewBuilder private var albumMenuItems: some View {
                 if let entry = ApplicationMusicPlayer.shared.queue.currentEntry,
                    case let .song(song) = entry.item {
@@ -665,54 +660,6 @@ struct ContentView: View {
         }
     }
 
-
-    // MARK: - Album Art
-
-    private var albumArtView: some View {
-        ZStack {
-            // Bevel frame
-            RoundedRectangle(cornerRadius: 8)
-                .fill(iceDark)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 8)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [iceBorder.opacity(0.8), iceBorder.opacity(0.3)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 2
-                        )
-                )
-
-            if let artwork = playerManager.currentArtwork {
-                // Render the MusicKit Artwork directly via ArtworkImage (the supported
-                // path). The old entry.artwork.url() + AsyncImage route returns a
-                // musickit:// URL that AsyncImage can't load on the iOS 27 beta.
-                GeometryReader { geo in
-                    ArtworkImage(artwork,
-                                 width: max(geo.size.width - 8, 0),
-                                 height: max(geo.size.height - 8, 0))
-                        .clipShape(RoundedRectangle(cornerRadius: 6))
-                        .frame(width: geo.size.width, height: geo.size.height)
-                }
-            } else {
-                artPlaceholder
-            }
-        }
-        .aspectRatio(1, contentMode: .fit)
-    }
-
-    @ViewBuilder
-    private var artPlaceholder: some View {
-        // REM: his TestFlight note 11-18: "The blank album art should be a picture" —
-        // the CryoTunesIcon art (the app icon's treble clef), not a note glyph.
-        Image("CryoTunesIcon")
-            .resizable()
-            .aspectRatio(contentMode: .fit)
-            .clipShape(RoundedRectangle(cornerRadius: 6))
-            .padding(4)
-    }
 
     // MARK: - Track Info
 
@@ -955,39 +902,6 @@ struct ContentView: View {
             border: iceBorder,
             glow: iceGlow
         )
-    }
-
-    private func retroButton(icon: String, size: CGFloat, prominent: Bool = false) -> some View {
-        ZStack {
-            RoundedRectangle(cornerRadius: 6)
-                .fill(
-                    LinearGradient(
-                        colors: [
-                            iceDark.opacity(0.8),
-                            Color(red: 0.08, green: 0.12, blue: 0.2)
-                        ],
-                        startPoint: .top,
-                        endPoint: .bottom
-                    )
-                )
-                .overlay(
-                    RoundedRectangle(cornerRadius: 6)
-                        .strokeBorder(
-                            LinearGradient(
-                                colors: [iceBorder.opacity(0.6), iceBorder.opacity(0.2)],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1.5
-                        )
-                )
-
-            Image(systemName: icon)
-                .font(.system(size: size, weight: .semibold))
-                .foregroundStyle(prominent ? iceBlue : iceAccent.opacity(0.8))
-                .shadow(color: prominent ? iceGlow.opacity(0.4) : .clear, radius: 3)
-        }
-        .frame(width: prominent ? 64 : 52, height: prominent ? 52 : 44)
     }
 
     // MARK: - Station Display

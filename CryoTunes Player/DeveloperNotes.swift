@@ -87,7 +87,8 @@
 // iOS 27 beta artwork.url() returns a "musickit://" URL that AsyncImage/URLSession
 // can't load, so the face fell back to the placeholder. Fix: render the Artwork
 // object directly via ArtworkImage (Apple's supported path) instead of resolving
-// a URL. See MusicPlaybackManager.currentArtwork + ContentView.albumArtView.
+// a URL. See MusicPlaybackManager.currentArtwork + the flooded art in ContentView
+// (the framed albumArtView was removed as dead code, review 033, 2026-11-24).
 //
 // CryoKit: RETIRED. His word 2026-11-24: "we retired cryokit and its hard coded in
 // the apps now." The Engine/ files are CryoTunes' own code (vendored 2026-06-28,
