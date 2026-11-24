@@ -11,6 +11,9 @@ import MessageUI
 #endif
 
 struct FeedbackView: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     let appName: String
     var initialType: FeedbackType = .bug
     @Environment(\.dismiss) private var dismiss
@@ -56,7 +59,7 @@ struct FeedbackView: View {
                     .pickerStyle(.segmented)
 
                     TextEditor(text: $feedbackText)
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .frame(minHeight: 200)
                         .scrollContentBackground(.hidden)
                         .padding(12)
@@ -70,7 +73,7 @@ struct FeedbackView: View {
 
                     if feedbackText.isEmpty {
                         Text(placeholderText)
-                            .font(.system(size: 18, design: .monospaced))
+                            .font(.system(size: 18 * textScale, design: .monospaced))
                             .foregroundStyle(iceBorder.opacity(0.4))
                             .allowsHitTesting(false)
                             .frame(maxWidth: .infinity, alignment: .leading)
@@ -101,9 +104,9 @@ struct FeedbackView: View {
                     } label: {
                         HStack {
                             Image(systemName: "paperplane.fill")
-                                .font(.system(size: 18))
+                                .font(.system(size: 18 * textScale))
                             Text("Send")
-                                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                                .font(.system(size: 18 * textScale, weight: .semibold, design: .monospaced))
                         }
                         .foregroundStyle(.white)
                         .frame(maxWidth: .infinity)
@@ -121,7 +124,7 @@ struct FeedbackView: View {
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Cancel") { dismiss() }
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .foregroundStyle(iceAccent)
                 }
             }

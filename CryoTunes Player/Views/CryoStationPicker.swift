@@ -9,6 +9,9 @@ import SwiftUI
 import MusicKit
 
 struct CryoStationPicker: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     @Bindable var player: MusicPlaybackManager
     var stationFailureMonitor: StationFailureMonitor
     let tint: Color
@@ -52,7 +55,7 @@ struct CryoStationPicker: View {
                 .accessibilityLabel("Back")
 
                 Text("MY MUSIC")
-                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .bold, design: .monospaced))
                     .foregroundStyle(border)
                     .tracking(1.5)
                     .padding(.horizontal, 8)
@@ -445,7 +448,7 @@ struct CryoStationPicker: View {
                     // to a caption/footnote to tidy the card, and do NOT drop .fixedSize — the line
                     // wraps to fit, it never truncates or scales down.
                     Text("Tap + to add a song, then ✓ to play. Tapping the title only previews.")
-                        .font(.system(size: 18))
+                        .font(.system(size: 18 * textScale))
                         .foregroundStyle(border)
                         .fixedSize(horizontal: false, vertical: true)
                         .frame(maxWidth: .infinity, alignment: .leading)

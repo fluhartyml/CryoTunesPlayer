@@ -10,6 +10,9 @@ import MusicKit
 import ShazamKit
 
 struct ContentView: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     @State private var playerManager = CryoPlayerHost.player
     // REM 2026-11-19 — the weather retired with the LCD. His word, 18:54: "weater and everything
     // to do with the lcd". No weather request, so no location ask either. WeatherManager.swift
@@ -171,7 +174,7 @@ struct ContentView: View {
         .sheet(isPresented: $showSleepTimerSheet) {
             VStack(alignment: .leading, spacing: 14) {
                 Text("SLEEP TIMER")
-                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .bold, design: .monospaced))
                     .foregroundStyle(iceBorder)
                     .tracking(1.5)
                 sleepTimerButtons
@@ -346,7 +349,9 @@ struct ContentView: View {
             Task { await shazamManager.startListening() }
         } label: {
             Image(systemName: shazamManager.isListening ? "waveform" : "shazam.logo.fill")
-                .font(.system(size: 28))
+                // REM: review 043 — glyph grows with Larger Text but capped at 1.3× so the two
+                // REM: header buttons never overlap (seen at the largest accessibility size).
+                .font(.system(size: 28 * min(textScale, 1.3)))
                 .foregroundStyle(shazamManager.isListening ? iceGlow : iceBlue)
                 .symbolEffect(.pulse, isActive: shazamManager.isListening)
                 .frame(width: 44, height: 44)
@@ -359,7 +364,9 @@ struct ContentView: View {
             showSettings = true
         } label: {
             Image(systemName: "gearshape.fill")
-                .font(.system(size: 28))
+                // REM: review 043 — glyph grows with Larger Text but capped at 1.3× so the two
+                // REM: header buttons never overlap (seen at the largest accessibility size).
+                .font(.system(size: 28 * min(textScale, 1.3)))
                 .foregroundStyle(iceBlue)
                 .frame(width: 44, height: 44)
         }
@@ -454,7 +461,7 @@ struct ContentView: View {
         VStack(alignment: .leading, spacing: 8) {
             if !myMusicOpen {
                 Text("STATIONS")
-                    .font(.system(size: 18, weight: .bold, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .bold, design: .monospaced))
                     .foregroundStyle(iceBorder)
                     .tracking(1.5)
                 stationDisplay
@@ -678,7 +685,7 @@ struct ContentView: View {
 
                 VStack(spacing: 2) {
                     Text(playerManager.currentSongTitle.isEmpty ? "No Track" : playerManager.currentSongTitle)
-                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 18 * textScale, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                         // REM 2026-11-19 — the title wraps (two lines) instead of ending in "…";
                         // his 10:06 card showed it cut off. The plan, step 3.
@@ -688,7 +695,7 @@ struct ContentView: View {
                         .shadow(color: iceGlow.opacity(0.3), radius: 2)
 
                     Text(playerManager.currentArtistName.isEmpty ? "---" : playerManager.currentArtistName)
-                        .font(.system(size: 18, weight: .regular, design: .monospaced))
+                        .font(.system(size: 18 * textScale, weight: .regular, design: .monospaced))
                         .foregroundStyle(iceAccent.opacity(0.7))
                         .lineLimit(1)
                 }
@@ -730,13 +737,17 @@ struct ContentView: View {
             // Time labels
             HStack {
                 Text(formatTime(elapsed))
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .font(.system(size: 14 * textScale, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceAccent.opacity(0.6))
 
                 Spacer()
 
                 Text("-\(formatTime(remaining)) / \(formatTime(duration))")
-                    .font(.system(size: 14, weight: .medium, design: .monospaced))
+                    .font(.system(size: 14 * textScale, weight: .medium, design: .monospaced))
+                    // REM: review 043 — one line always; at the largest text sizes it shrinks to fit
+                    // REM: instead of wrapping "/ 0:00" under itself.
+                    .lineLimit(1)
+                    .minimumScaleFactor(0.5)
                     .foregroundStyle(iceAccent.opacity(0.6))
             }
         }
@@ -876,9 +887,9 @@ struct ContentView: View {
     private var timerCountdown: some View {
         HStack(spacing: 6) {
             Image(systemName: "moon.zzz.fill")
-                .font(.system(size: 18))
+                .font(.system(size: 18 * textScale))
             Text(playerManager.sleepTimerRemaining.isEmpty ? "Sleep" : playerManager.sleepTimerRemaining)
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
         }
         .foregroundStyle(iceAccent.opacity(playerManager.sleepTimerRemaining.isEmpty ? 0.4 : 0.7))
         .frame(height: 24)
@@ -918,7 +929,7 @@ struct ContentView: View {
             // REM: One short line on the player card covers them all.
             if !playerManager.errorMessage.isEmpty {
                 Label(playerManager.errorMessage, systemImage: "exclamationmark.triangle")
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                     .foregroundStyle(Color.orange.opacity(0.9))
                     .multilineTextAlignment(.center)
                     .accessibilityLabel(playerManager.errorMessage)
@@ -926,22 +937,22 @@ struct ContentView: View {
             if playerManager.currentStation == .none, !playerManager.nowPlayingTitle.isEmpty {
                 // Albums, playlists and songs from My Music (review 007).
                 Text(playerManager.nowPlayingTitle)
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceAccent.opacity(0.5))
                     .lineLimit(1)
             }
             if playerManager.currentStation != .none {
                 Text(playerManager.nowPlayingTitle)
-                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                     .foregroundStyle(iceAccent.opacity(0.5))
                     .lineLimit(1)
 
                 Text(playerManager.currentStation.rawValue)
-                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .regular, design: .monospaced))
                     .foregroundStyle(iceBorder.opacity(0.5))
 
                 Text(playerManager.currentStation.category.rawValue.uppercased())
-                    .font(.system(size: 18, weight: .regular, design: .monospaced))
+                    .font(.system(size: 18 * textScale, weight: .regular, design: .monospaced))
                     .foregroundStyle(iceBorder.opacity(0.3))
             }
         }
@@ -951,12 +962,12 @@ struct ContentView: View {
     private var shazamLoadingOverlay: some View {
         VStack(spacing: 8) {
             Image(systemName: "shazam.logo.fill")
-                .font(.system(size: 32))
+                .font(.system(size: 32 * textScale))
                 .foregroundStyle(iceAccent)
                 .symbolEffect(.pulse, options: .repeating)
 
             Text("Shazam match — loading album…")
-                .font(.system(size: 18, design: .monospaced))
+                .font(.system(size: 18 * textScale, design: .monospaced))
                 .foregroundStyle(iceBlue)
                 .multilineTextAlignment(.center)
         }
@@ -980,6 +991,9 @@ struct ContentView: View {
 }
 
 struct ShazamNoMatchSheet: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     @Environment(\.dismiss) private var dismiss
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -998,12 +1012,12 @@ struct ShazamNoMatchSheet: View {
                         .shadow(color: iceAccent.opacity(0.3), radius: 12)
 
                     Text("No Match Found")
-                        .font(.system(size: 22, weight: .bold, design: .monospaced))
+                        .font(.system(size: 22 * textScale, weight: .bold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                         .multilineTextAlignment(.center)
 
                     Text("Shazam couldn't identify this song.")
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .foregroundStyle(iceBlue.opacity(0.7))
                         .multilineTextAlignment(.center)
                 }

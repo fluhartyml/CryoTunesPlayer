@@ -89,3 +89,15 @@ extension View {
         #endif
     }
 }
+
+// MARK: - Scaled fonts (review 043)
+
+// REM: review 043 (2026-11-24, his "okay lock it") — every font in the app used a fixed
+// REM: .system(size:), so 18 pt never grew for a listener who sets Larger Text. Each view that
+// REM: sets fonts now holds ONE multiplier, @ScaledMetric(relativeTo: .body) var textScale = 1,
+// REM: and writes .font(.system(size: 18 * textScale, ...)): 18 pt at the default text size,
+// REM: growing with Dynamic Type (his 11-04: "18 point rule is my personal assistive setting" —
+// REM: the listener's setting wins).
+// REM: ⚠️ DO NOT go back to a per-call ViewModifier holding its own @ScaledMetric. Tried in
+// REM: build 121's first pass: ~56 extra modifier layers overflowed the main-thread stack while
+// REM: SwiftUI built the player (EXC_BAD_ACCESS, stack guard) and the app crashed at launch.

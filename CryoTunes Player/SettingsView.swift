@@ -10,6 +10,9 @@ import AVKit
 import MusicKit
 
 struct SettingsView: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     @Bindable var playerManager: MusicPlaybackManager
     var dislikeManager: DislikeManager
     var stationFailureMonitor: StationFailureMonitor
@@ -122,7 +125,7 @@ struct SettingsView: View {
     private func quadrantPicker(title: String, key: String, mine: Binding<String>, other: Binding<String>) -> some View {
         VStack(alignment: .leading, spacing: 8) {
             Text(title)
-                .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                .font(.system(size: 18 * textScale, weight: .semibold, design: .monospaced))
                 .foregroundStyle(iceBlue)
             Grid(horizontalSpacing: 8, verticalSpacing: 8) {
                 GridRow { quadrantButton(.topLeft, key: key, mine: mine, other: other); quadrantButton(.topRight, key: key, mine: mine, other: other) }
@@ -138,7 +141,7 @@ struct SettingsView: View {
             mine.wrappedValue = q.rawValue
         } label: {
             Text(q.label)
-                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
                 .foregroundStyle(selected ? .black : iceBlue)
@@ -172,21 +175,21 @@ struct SettingsView: View {
                 ForEach(dislikeManager.stationsWithDislikes(), id: \.station) { item in
                     HStack {
                         Text(item.station.rawValue)
-                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                            .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                             .foregroundStyle(iceBlue)
                             .lineLimit(1)
 
                         Spacer()
 
                         Text("\(item.count)")
-                            .font(.system(size: 18, design: .monospaced))
+                            .font(.system(size: 18 * textScale, design: .monospaced))
                             .foregroundStyle(iceBorder)
 
                         Button {
                             dislikeManager.resetStation(item.station)
                         } label: {
                             Text("Reset")
-                                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                                .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                                 .foregroundStyle(.red.opacity(0.8))
                         }
                     }
@@ -204,9 +207,9 @@ struct SettingsView: View {
                 } label: {
                     HStack {
                         Image(systemName: "trash")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18 * textScale))
                         Text("Reset All Dislikes")
-                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                            .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                         Spacer()
                     }
                     .foregroundStyle(.red.opacity(0.8))
@@ -230,22 +233,22 @@ struct SettingsView: View {
             VStack(spacing: 6) {
                 HStack {
                     Text("CryoTunes Player")
-                        .font(.system(size: 18, weight: .semibold, design: .monospaced))
+                        .font(.system(size: 18 * textScale, weight: .semibold, design: .monospaced))
                         .foregroundStyle(iceBlue)
                     Spacer()
                     Text("v\(Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "?") (\(Bundle.main.infoDictionary?["CFBundleVersion"] as? String ?? "?"))")
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .foregroundStyle(iceBorder)
                 }
                 HStack {
                     Text("Michael Lee Fluharty")
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.7))
                     Spacer()
                 }
                 HStack {
                     Text("Engineered with Claude by Anthropic")
-                        .font(.system(size: 18, design: .monospaced))
+                        .font(.system(size: 18 * textScale, design: .monospaced))
                         .foregroundStyle(iceBorder.opacity(0.5))
                     Spacer()
                 }
@@ -257,12 +260,12 @@ struct SettingsView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "dot.radiowaves.left.and.right")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18 * textScale))
                         Text("Suggest a Station")
-                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                            .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18 * textScale))
                     }
                     .foregroundStyle(iceAccent)
                 }
@@ -275,12 +278,12 @@ struct SettingsView: View {
                 } label: {
                     HStack(spacing: 4) {
                         Image(systemName: "envelope")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18 * textScale))
                         Text("Send Feedback")
-                            .font(.system(size: 18, weight: .medium, design: .monospaced))
+                            .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                         Spacer()
                         Image(systemName: "chevron.right")
-                            .font(.system(size: 18))
+                            .font(.system(size: 18 * textScale))
                     }
                     .foregroundStyle(iceAccent)
                 }
@@ -305,12 +308,12 @@ struct SettingsView: View {
             Link(destination: destination) {
                 HStack(spacing: 4) {
                     Image(systemName: symbol)
-                        .font(.system(size: 18))
+                        .font(.system(size: 18 * textScale))
                     Text(title)
-                        .font(.system(size: 18, weight: .medium, design: .monospaced))
+                        .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                     Spacer()
                     Image(systemName: "arrow.up.right")
-                        .font(.system(size: 18))
+                        .font(.system(size: 18 * textScale))
                 }
                 .foregroundStyle(iceAccent)
             }
@@ -323,7 +326,7 @@ struct SettingsView: View {
     private func sectionContainer<Content: View>(title: String, @ViewBuilder content: () -> Content) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             Text(title.uppercased())
-                .font(.system(size: 18, weight: .bold, design: .monospaced))
+                .font(.system(size: 18 * textScale, weight: .bold, design: .monospaced))
                 .foregroundStyle(iceBorder)
                 .tracking(1.5)
 

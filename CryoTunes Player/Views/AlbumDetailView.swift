@@ -11,6 +11,9 @@ import SwiftUI
 import MusicKit
 
 struct AlbumDetailView: View {
+    /// Review 043: one Dynamic Type multiplier for every font in this view (see Platform.swift).
+    @ScaledMetric(relativeTo: .body) private var textScale: CGFloat = 1
+
     let album: Album
     let playlistManager: PlaylistManager
     /// REM: review 007 (2026-11-24): album playback goes through the player manager so the
@@ -37,23 +40,23 @@ struct AlbumDetailView: View {
                     // Album info
                     VStack(spacing: 6) {
                         Text(album.title)
-                            .font(.system(size: 22, weight: .bold, design: .monospaced))
+                            .font(.system(size: 22 * textScale, weight: .bold, design: .monospaced))
                             .foregroundStyle(iceBlue)
                             .multilineTextAlignment(.center)
 
                         Text(album.artistName)
-                            .font(.system(size: 18, design: .monospaced))
+                            .font(.system(size: 18 * textScale, design: .monospaced))
                             .foregroundStyle(iceBlue.opacity(0.7))
 
                         if let releaseDate = album.releaseDate {
                             Text(releaseDate, format: .dateTime.year())
-                                .font(.system(size: 18, design: .monospaced))
+                                .font(.system(size: 18 * textScale, design: .monospaced))
                                 .foregroundStyle(iceBlue.opacity(0.5))
                         }
 
                         if album.trackCount > 0 {
                             Text("\(album.trackCount) tracks")
-                                .font(.system(size: 18, design: .monospaced))
+                                .font(.system(size: 18 * textScale, design: .monospaced))
                                 .foregroundStyle(iceBlue.opacity(0.5))
                         }
                     }
@@ -64,7 +67,7 @@ struct AlbumDetailView: View {
                             playAlbum()
                         } label: {
                             Label("Play", systemImage: "play.fill")
-                                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                                .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                                 .foregroundStyle(.white)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
@@ -76,7 +79,7 @@ struct AlbumDetailView: View {
                             addToLibrary()
                         } label: {
                             Label("Add to Library", systemImage: "plus")
-                                .font(.system(size: 18, weight: .medium, design: .monospaced))
+                                .font(.system(size: 18 * textScale, weight: .medium, design: .monospaced))
                                 .foregroundStyle(iceBlue)
                                 .padding(.horizontal, 20)
                                 .padding(.vertical, 10)
@@ -94,19 +97,19 @@ struct AlbumDetailView: View {
                                 } label: {
                                     HStack(spacing: 12) {
                                         Text("\(index + 1)")
-                                            .font(.system(size: 18, design: .monospaced))
+                                            .font(.system(size: 18 * textScale, design: .monospaced))
                                             .foregroundStyle(iceBlue.opacity(0.4))
                                             .frame(width: 30, alignment: .trailing)
 
                                         VStack(alignment: .leading, spacing: 2) {
                                             Text(track.title)
-                                                .font(.system(size: 18, design: .monospaced))
+                                                .font(.system(size: 18 * textScale, design: .monospaced))
                                                 .foregroundStyle(iceBlue)
                                                 .lineLimit(1)
 
                                             if let duration = track.duration {
                                                 Text(formatDuration(duration))
-                                                    .font(.system(size: 14, design: .monospaced))
+                                                    .font(.system(size: 14 * textScale, design: .monospaced))
                                                     .foregroundStyle(iceBlue.opacity(0.4))
                                             }
                                         }
