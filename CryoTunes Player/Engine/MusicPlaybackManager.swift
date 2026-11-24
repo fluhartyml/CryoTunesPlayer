@@ -387,15 +387,21 @@ public class MusicPlaybackManager {
                 // playbackStatus == .stopped wasn't enough (after stop() it doesn't reliably read
                 // .stopped), so stop() now sets a flag that only real playback clears.
                 if self.player.state.playbackStatus == .playing { self.stoppedByUser = false }
+                // REM: review 039 (2026-11-24): @Observable announces every assignment, so this
+                // REM: loop used to redraw the whole player face every second. Assign only on change.
                 if let entry, !self.stoppedByUser {
-                    self.currentSongTitle = entry.title
-                    self.currentArtistName = entry.subtitle ?? ""
-                    self.currentArtwork = entry.artwork
+                    if self.currentSongTitle != entry.title { self.currentSongTitle = entry.title }
+                    let artist = entry.subtitle ?? ""
+                    if self.currentArtistName != artist { self.currentArtistName = artist }
+                    if self.currentArtwork != entry.artwork { self.currentArtwork = entry.artwork }
                 }
-                self.isPlaying = self.player.state.playbackStatus == .playing
-                self.playbackTime = self.player.playbackTime
+                let playing = self.player.state.playbackStatus == .playing
+                if self.isPlaying != playing { self.isPlaying = playing }
+                let time = self.player.playbackTime
+                if abs(self.playbackTime - time) >= 0.5 { self.playbackTime = time }
                 if let entry, case let .song(song) = entry.item {
-                    self.trackDuration = song.duration ?? 0
+                    let duration = song.duration ?? 0
+                    if self.trackDuration != duration { self.trackDuration = duration }
                 }
                 if entry?.id != self.lastEntryID {
                     self.lastEntryID = entry?.id
