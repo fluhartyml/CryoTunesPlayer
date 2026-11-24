@@ -26,6 +26,9 @@ final class DislikeManager {
     /// REM: so two devices disliking before a sync lost one side. Now the incoming copy wins
     /// REM: (so resets and undos still travel) plus these local adds are merged back in.
     private var pendingAdds: [String: Set<String>] = [:]
+    /// REM: review 008/010 (2026-11-24): queue moves since the last dislike. The skip itself
+    /// REM: is move 1; the undo stays open through the song after it and closes at move 2.
+    private var entryChangesSinceDislike = 0
     private let kvs = NSUbiquitousKeyValueStore.default
 
     init() {
@@ -53,6 +56,7 @@ final class DislikeManager {
         dislikes[key] = set
         pendingAdds[key, default: []].insert(songID)
         lastDislike = (station: key, songID: songID)
+        entryChangesSinceDislike = 0
         save()
     }
 
@@ -66,6 +70,13 @@ final class DislikeManager {
         }
         lastDislike = nil
         save()
+    }
+
+    /// The player moved to a new entry that is not disliked: close the undo window
+    /// once the song that followed the skip has given way to the next one.
+    func noteEntryChanged() {
+        entryChangesSinceDislike += 1
+        if entryChangesSinceDislike > 1 { clearUndo() }
     }
 
     /// Clear the undo window (called when a song ends naturally)

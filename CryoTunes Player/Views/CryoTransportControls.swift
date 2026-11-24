@@ -19,7 +19,6 @@ struct CryoTransportControls: View {
     let border: Color
     let glow: Color
     /// Title changes since the last thumbs-down (review 008 undo window).
-    @State private var titleChangesSinceDislike = 0
     @State private var showShareSheet = false
     @State private var ratingState: RatingState = .none
 
@@ -141,7 +140,8 @@ struct CryoTransportControls: View {
         }
         .onChange(of: player.currentSongTitle) { _, _ in
             ratingState = .none
-            autoSkipIfDisliked()
+            // REM: review 010 (2026-11-24): the disliked-song auto-skip moved to ContentView's
+            // REM: player.onEntryChange, so it runs with the screen locked.
         }
     }
 
@@ -200,25 +200,8 @@ struct CryoTransportControls: View {
                 try? await favoriteManager.unfavorite(songID: songID)
             }
             ratingState = .disliked
-            titleChangesSinceDislike = 0
             player.skipForward()
         }
-    }
-
-    /// Auto-skip disliked songs — call this from .onChange of currentSongTitle
-    private func autoSkipIfDisliked() {
-        guard let songID = currentSongID,
-              player.currentStation != .none,
-              dislikeManager.isDisliked(songID: songID, on: player.currentStation) else {
-            // REM: review 008 (2026-11-24): the skip itself changes the title, which used to
-            // REM: wipe the undo at once. Keep it through the song that follows the skip; clear
-            // REM: it when THAT song gives way to the next one.
-            titleChangesSinceDislike += 1
-            if titleChangesSinceDislike > 1 { dislikeManager.clearUndo() }
-            return
-        }
-        // This song is disliked on this station — auto-skip without recording again
-        player.skipForward()
     }
 
     private var currentSongID: String? {

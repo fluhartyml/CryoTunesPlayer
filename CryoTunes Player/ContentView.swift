@@ -309,6 +309,17 @@ struct ContentView: View {
         .preferredColorScheme(.dark)
         .onAppear {
             shazamManager.playlistManager = playlistManager
+            // REM: review 010 (2026-11-24): auto-skip a song disliked on this station. It used to
+            // REM: run from the transport view on a title change, which missed two same-titled
+            // REM: songs in a row and may not run with the screen locked.
+            playerManager.onEntryChange = { [playerManager, dislikeManager] songID in
+                if let songID, playerManager.currentStation != .none,
+                   dislikeManager.isDisliked(songID: songID, on: playerManager.currentStation) {
+                    playerManager.skipForward()
+                } else {
+                    dislikeManager.noteEntryChanged()
+                }
+            }
         }
     }
 

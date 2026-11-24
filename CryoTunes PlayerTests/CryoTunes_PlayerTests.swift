@@ -127,4 +127,20 @@ struct DislikeTests {
         manager.undoLastDislike()                 // nothing left to undo
         #expect(manager.isDisliked(songID: song, on: station))
     }
+
+    // REM: review 008/010 (2026-11-24): the skip is queue move 1, so Previous still undoes
+    // REM: during the next song; move 2 (that song ending) closes the window.
+    @Test func undoSurvivesTheSkipThenClosesOnTheNextSong() {
+        let manager = DislikeManager()
+        let station = MusicStationOption.allCases.first { $0 != .none }!
+        let song = "test-song-\(UUID().uuidString)"
+        defer { manager.resetStation(station) }
+
+        manager.dislike(songID: song, on: station)
+        manager.noteEntryChanged()
+        #expect(manager.lastDislike != nil)
+        manager.noteEntryChanged()
+        #expect(manager.lastDislike == nil)
+        #expect(manager.isDisliked(songID: song, on: station))
+    }
 }

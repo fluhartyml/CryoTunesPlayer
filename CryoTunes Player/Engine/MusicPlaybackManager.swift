@@ -74,6 +74,12 @@ public class MusicPlaybackManager {
     private let player = ApplicationMusicPlayer.shared
     private var timerTask: Task<Void, Never>?
     private var nowPlayingTask: Task<Void, Never>?
+    /// REM: review 010 (2026-11-24): called once each time the queue moves to a new entry,
+    /// REM: with that entry's song ID. Keyed on the entry's ID, not its title, so two songs
+    /// REM: with the same title in a row still count. It runs from this loop, not a view, so
+    /// REM: it keeps working while the screen is locked (the disliked-song auto-skip uses it).
+    public var onEntryChange: ((_ songID: String?) -> Void)?
+    private var lastEntryID: String?
 
     public init() {
         // Restore last station without auto-playing
@@ -395,6 +401,14 @@ public class MusicPlaybackManager {
                 self.playbackTime = self.player.playbackTime
                 if let entry, case let .song(song) = entry.item {
                     self.trackDuration = song.duration ?? 0
+                }
+                if entry?.id != self.lastEntryID {
+                    self.lastEntryID = entry?.id
+                    if let entry {
+                        var songID: String?
+                        if case let .song(song) = entry.item { songID = song.id.rawValue }
+                        self.onEntryChange?(songID)
+                    }
                 }
                 try? await Task.sleep(for: .seconds(1))
             }
