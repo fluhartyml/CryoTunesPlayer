@@ -22,6 +22,10 @@ class ShazamManager: NSObject, SHSessionDelegate {
 
     private var session = SHSession()
     private var audioEngine = AVAudioEngine()
+    /// REM: review 015 (2026-11-24): the 12-second auto-stop, kept so Stop can cancel it.
+    private var autoStopTask: Task<Void, Never>?
+    /// REM: review 016: was CryoTunes playing when the listen began? If so, resume after.
+    private var musicWasPlaying = false
 
     override init() {
         super.init()
@@ -34,6 +38,7 @@ class ShazamManager: NSObject, SHSessionDelegate {
             return
         }
 
+        musicWasPlaying = ApplicationMusicPlayer.shared.state.playbackStatus == .playing
         await MainActor.run {
             isListening = true
             noMatch = false
@@ -58,29 +63,35 @@ class ShazamManager: NSObject, SHSessionDelegate {
         let inputNode = audioEngine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
 
-        inputNode.installTap(onBus: 0, bufferSize: 2048, format: format) { [weak self] buffer, _ in
-            self?.session.matchStreamingBuffer(buffer, at: nil)
+        // REM: review 017 (2026-11-24): the tap runs on the audio thread. It captures the
+        // REM: session itself, not self, so it never reaches into a main-actor object.
+        let shazamSession = session
+        inputNode.installTap(onBus: 0, bufferSize: 2048, format: format) { buffer, _ in
+            shazamSession.matchStreamingBuffer(buffer, at: nil)
         }
 
         do {
             try audioEngine.start()
         } catch {
+            // REM: review 014: a failed start used to leave the tap installed, and the next
+            // REM: press installed a second one, which crashes AVAudioEngine. Clean up now.
             print("Audio engine error: \(error)")
-            await MainActor.run { isListening = false }
+            stopListening()
+            return
         }
 
-        // Auto-stop after 12 seconds
-        Task {
+        // Auto-stop after 12 seconds (cancelled by Stop — review 015)
+        autoStopTask?.cancel()
+        autoStopTask = Task { @MainActor [weak self] in
             try? await Task.sleep(for: .seconds(12))
-            await MainActor.run {
-                if self.isListening {
-                    self.stopListening()
-                }
-            }
+            guard !Task.isCancelled, let self, self.isListening else { return }
+            self.stopListening()
         }
     }
 
     func stopListening() {
+        autoStopTask?.cancel()
+        autoStopTask = nil
         audioEngine.stop()
         audioEngine.inputNode.removeTap(onBus: 0)
         isListening = false
@@ -90,6 +101,12 @@ class ShazamManager: NSObject, SHSessionDelegate {
         try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default)
         try? AVAudioSession.sharedInstance().setActive(true)
         #endif
+
+        // REM: review 016: pick the music back up if it was playing before the listen.
+        if musicWasPlaying {
+            musicWasPlaying = false
+            Task { try? await ApplicationMusicPlayer.shared.play() }
+        }
     }
 
     // MARK: - SHSessionDelegate
