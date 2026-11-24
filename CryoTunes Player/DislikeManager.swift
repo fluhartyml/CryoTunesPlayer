@@ -21,6 +21,11 @@ final class DislikeManager {
     private(set) var lastDislike: (station: String, songID: String)?
 
     private let storageKey = "stationDislikes"
+    /// REM: review 013 (2026-11-24): dislikes added on THIS device since iCloud last
+    /// REM: told us about a change. An incoming copy used to replace the local one outright,
+    /// REM: so two devices disliking before a sync lost one side. Now the incoming copy wins
+    /// REM: (so resets and undos still travel) plus these local adds are merged back in.
+    private var pendingAdds: [String: Set<String>] = [:]
     private let kvs = NSUbiquitousKeyValueStore.default
 
     init() {
@@ -46,6 +51,7 @@ final class DislikeManager {
         var set = dislikes[key] ?? []
         set.insert(songID)
         dislikes[key] = set
+        pendingAdds[key, default: []].insert(songID)
         lastDislike = (station: key, songID: songID)
         save()
     }
@@ -54,6 +60,7 @@ final class DislikeManager {
     func undoLastDislike() {
         guard let last = lastDislike else { return }
         dislikes[last.station]?.remove(last.songID)
+        pendingAdds[last.station]?.remove(last.songID)
         if dislikes[last.station]?.isEmpty == true {
             dislikes.removeValue(forKey: last.station)
         }
@@ -74,12 +81,14 @@ final class DislikeManager {
     /// Reset dislikes for a specific station
     func resetStation(_ station: MusicStationOption) {
         dislikes.removeValue(forKey: station.rawValue)
+        pendingAdds.removeValue(forKey: station.rawValue)
         save()
     }
 
     /// Reset all dislikes across all stations
     func resetAll() {
         dislikes.removeAll()
+        pendingAdds.removeAll()
         lastDislike = nil
         save()
     }
@@ -120,8 +129,14 @@ final class DislikeManager {
         guard let data = kvs.data(forKey: storageKey),
               let decoded = try? JSONDecoder().decode([String: [String]].self, from: data) else { return }
         Task { @MainActor in
-            dislikes = decoded.mapValues { Set($0) }
-            UserDefaults.standard.set(data, forKey: storageKey)
+            var merged = decoded.mapValues { Set($0) }
+            for (station, songs) in pendingAdds where !songs.isEmpty {
+                merged[station, default: []].formUnion(songs)
+            }
+            let hadLocalAdds = merged != decoded.mapValues { Set($0) }
+            dislikes = merged
+            pendingAdds = [:]
+            if hadLocalAdds { save() } else { UserDefaults.standard.set(data, forKey: storageKey) }
         }
     }
 }
