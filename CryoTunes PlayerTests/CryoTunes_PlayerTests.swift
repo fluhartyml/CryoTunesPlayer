@@ -310,3 +310,18 @@ struct StationKeyTests {
         #expect(Set(keys).count == keys.count)
     }
 }
+
+/// Review 053: repeat cycles Off → All → One → Off and comes back to where it started.
+struct RepeatCycleTests {
+    @Test func cyclesOffAllOneOff() {
+        #expect(CryoRepeatMode.none.next == .all)
+        #expect(CryoRepeatMode.all.next == .one)
+        #expect(CryoRepeatMode.one.next == .none)
+    }
+
+    @Test func threeStepsComeBackHome() {
+        for mode in CryoRepeatMode.allCases {
+            #expect(mode.next.next.next == mode)
+        }
+    }
+}

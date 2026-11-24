@@ -364,11 +364,7 @@ public class MusicPlaybackManager {
     }
 
     public func cycleRepeatMode() {
-        switch repeatMode {
-        case .none: repeatMode = .all
-        case .all: repeatMode = .one
-        case .one: repeatMode = .none
-        }
+        repeatMode = repeatMode.next
     }
 
     // MARK: - Now Playing Observer
@@ -621,6 +617,16 @@ public enum CryoRepeatMode: String, CaseIterable, Sendable {
         case .none: return "repeat"
         case .all: return "repeat"
         case .one: return "repeat.1"
+        }
+    }
+
+    /// Off → All → One → Off. REM: review 053 (2026-11-24) — pulled out of cycleRepeatMode()
+    /// so the unit tests can check the cycle without a live Apple Music player.
+    public var next: CryoRepeatMode {
+        switch self {
+        case .none: return .all
+        case .all: return .one
+        case .one: return .none
         }
     }
 
