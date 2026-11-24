@@ -28,9 +28,14 @@ struct CryoTransportControls: View {
         VStack(spacing: 12) {
             // Row 1: Transport
             HStack(spacing: 32) {
+                // REM: review 042 (2026-11-24, his "okay lock it") — keyboard shortcuts for Mac and
+                // iPad: Space = play/pause, ⌘← / ⌘→ = previous / next. The on-screen buttons stay
+                // (Sticky Keys rule: a modifier is never the only path). Also lets the robots drive
+                // transport by keyboard.
                 Button { skipBackWithUndo() } label: {
                     transportButton(icon: "backward.end.fill", size: 24, label: "Previous")
                 }
+                .keyboardShortcut(.leftArrow, modifiers: .command)
 
                 Button { player.togglePlayPause() } label: {
                     transportButton(
@@ -40,10 +45,12 @@ struct CryoTransportControls: View {
                         label: player.isPlaying ? "Pause" : "Play"
                     )
                 }
+                .keyboardShortcut(.space, modifiers: [])
 
                 Button { skipForwardWithDislike() } label: {
                     transportButton(icon: "forward.end.fill", size: 24, label: "Next")
                 }
+                .keyboardShortcut(.rightArrow, modifiers: .command)
 
                 Button { player.stop() } label: {
                     transportButton(icon: "stop.fill", size: 22, label: "Stop")

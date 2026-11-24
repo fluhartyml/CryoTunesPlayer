@@ -363,6 +363,8 @@ struct ContentView: View {
                 .foregroundStyle(iceBlue)
                 .frame(width: 44, height: 44)
         }
+        // REM: review 042 (2026-11-24) — ⌘, opens Settings on Mac and iPad keyboards; the gear stays.
+        .keyboardShortcut(",", modifiers: .command)
         .accessibilityLabel("Settings")
     }
 

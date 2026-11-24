@@ -79,7 +79,9 @@ final class CryoTunes_PlayerUITests: XCTestCase {
     @MainActor
     func testPlayerCardHasEveryControlAndNoLCD() throws {
         XCTAssertTrue(playerCard.waitForExistence(timeout: 5), "player card missing")
-        for label in ["Shuffle", "All", "One", "Like", "Skip", "Share", "Off", "30m", "1h", "2h", "4h", "Shazam", "Settings"] {
+        // REM: review 040 (build 118) gave the sleep buttons spoken names ("Timer off", "30 minutes"…);
+        // the robots look them up by what VoiceOver says, not the short words on screen.
+        for label in ["Shuffle", "All", "One", "Like", "Skip", "Share", "Timer off", "End of song", "30 minutes", "1 hour", "2 hours", "4 hours", "Shazam", "Settings"] {
             XCTAssertTrue(app.buttons[label].exists, "button \(label) missing")
         }
         XCTAssertFalse(app.staticTexts["Player"].exists, "the old title bar is still showing")
@@ -87,9 +89,19 @@ final class CryoTunes_PlayerUITests: XCTestCase {
         XCTAssertFalse(app.staticTexts.matching(NSPredicate(format: "label CONTAINS[c] '°F'")).firstMatch.exists,
                        "weather is still showing")
         // Sleep Timer last: its buttons sit below Like/Skip/Share.
-        XCTAssertGreaterThan(app.buttons["30m"].frame.minY, app.buttons["Like"].frame.maxY)
+        XCTAssertGreaterThan(app.buttons["30 minutes"].frame.minY, app.buttons["Like"].frame.maxY)
         // Player card defaults to the bottom.
         XCTAssertGreaterThan(playerCard.frame.midY, screen.midY)
+    }
+
+    /// Review 041: AirPlay sits on the player card. Review 042: ⌘, opens Settings from the keyboard.
+    @MainActor
+    func testAirPlayOnCardAndCommandCommaOpensSettings() throws {
+        XCTAssertTrue(playerCard.waitForExistence(timeout: 5), "player card missing")
+        XCTAssertTrue(app.descendants(matching: .any)["playerCard.airPlay"].exists, "AirPlay missing from the player card")
+        app.typeKey(",", modifierFlags: .command)
+        XCTAssertTrue(app.buttons["Done"].waitForExistence(timeout: 5), "⌘, did not open Settings")
+        closeSettings()
     }
 
     /// Card Position: choosing a spot moves the card; choosing the other card's spot swaps them.
