@@ -600,10 +600,11 @@ public enum MusicStationOption: String, CaseIterable, Sendable {
     // REM: of 2026-11-24 is now its PERMANENT key. ⚠️ NEVER change a case's raw value — change
     // REM: displayName instead. A unit test (StationKeyTests) holds the frozen list.
     /// Permanent saved key: last station, dislikes, Likes playlist, Siri/Shortcuts ID.
-    public var savedKey: String { rawValue }
+    /// nonisolated: Siri's StationQuery reads these off the main actor (pure, no state).
+    nonisolated public var savedKey: String { rawValue }
 
     /// What the listener sees and Siri says. Starts identical to the key; free to change.
-    public var displayName: String {
+    nonisolated public var displayName: String {
         switch self {
         default: return rawValue
         }
