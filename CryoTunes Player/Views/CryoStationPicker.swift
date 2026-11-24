@@ -26,6 +26,8 @@ struct CryoStationPicker: View {
     @State private var libraryLoaded = false
     @State private var expandedPlaylistID: MusicItemID?
     @State private var revealedSongs: [Song] = []
+    /// REM: review 006 (2026-11-24): tapping an artist opens their songs right under the row.
+    @State private var expandedArtistID: MusicItemID?
     @State private var playlistTrackCounts: [MusicItemID: Int] = [:]
     // Native Apple Music picker (iOS 27+). Gated at the call site.
     @State private var showMusicPicker = false
@@ -502,10 +504,16 @@ struct CryoStationPicker: View {
                 ) {
                     ForEach(player.libraryArtists, id: \.id) { artist in
                         Button {
-                            Task { await player.loadSongs(for: artist) }
+                            if expandedArtistID == artist.id {
+                                expandedArtistID = nil
+                            } else {
+                                expandedArtistID = artist.id
+                                player.librarySongs = []
+                                Task { await player.loadSongs(for: artist) }
+                            }
                         } label: {
                             HStack {
-                                Image(systemName: "person.fill")
+                                Image(systemName: expandedArtistID == artist.id ? "chevron.down" : "person.fill")
                                     .foregroundStyle(border.opacity(0.5))
 
                                 Text(artist.name)
@@ -517,6 +525,24 @@ struct CryoStationPicker: View {
                             .padding(.vertical, 6)
                             .padding(.leading, 48)
                             .padding(.trailing, 8)
+                        }
+
+                        if expandedArtistID == artist.id {
+                            ForEach(player.librarySongs, id: \.id) { song in
+                                Button {
+                                    Task { await player.playItems(player.librarySongs, startingAt: song, title: artist.name) }
+                                } label: {
+                                    HStack {
+                                        Text(song.title)
+                                            .foregroundStyle(tint.opacity(0.7))
+                                            .lineLimit(1)
+                                        Spacer()
+                                    }
+                                    .padding(.vertical, 4)
+                                    .padding(.leading, 62)
+                                    .padding(.trailing, 8)
+                                }
+                            }
                         }
                     }
                 }
@@ -639,7 +665,8 @@ struct CryoStationPicker: View {
 
                 ForEach(revealedSongs, id: \.id) { song in
                     Button {
-                        Task { await player.playSong(song) }
+                        // REM: review 005 (2026-11-24): start the playlist at this song and keep going.
+                        Task { await player.playItems(revealedSongs, startingAt: song, title: playlist.name) }
                     } label: {
                         HStack {
                             Text(song.title)

@@ -13,6 +13,9 @@ import MusicKit
 struct AlbumDetailView: View {
     let album: Album
     let playlistManager: PlaylistManager
+    /// REM: review 007 (2026-11-24): album playback goes through the player manager so the
+    /// REM: card shows the album, not the last station.
+    let player: MusicPlaybackManager
     @Environment(\.dismiss) private var dismiss
 
     private let iceBlue = Color(red: 0.65, green: 0.82, blue: 0.95)
@@ -156,12 +159,12 @@ struct AlbumDetailView: View {
 
     private func playAlbum() {
         Task {
-            await playlistManager.addAlbumPlaylist(album)
             if let tracks = album.tracks {
-                ApplicationMusicPlayer.shared.queue = .init(for: tracks)
-                try? await ApplicationMusicPlayer.shared.play()
+                await player.playItems(Array(tracks), title: album.title)
             }
-            await MainActor.run { dismiss() }
+            dismiss()
+            // REM: review 011: playback no longer waits on the playlist writes.
+            await playlistManager.addAlbumPlaylist(album)
         }
     }
 
@@ -174,9 +177,8 @@ struct AlbumDetailView: View {
 
     private func playTrack(_ track: Track, fromTracks tracks: MusicItemCollection<Track>) {
         Task {
-            ApplicationMusicPlayer.shared.queue = .init(for: tracks, startingAt: track)
-            try? await ApplicationMusicPlayer.shared.play()
-            await MainActor.run { dismiss() }
+            await player.playItems(Array(tracks), startingAt: track, title: album.title)
+            dismiss()
         }
     }
 

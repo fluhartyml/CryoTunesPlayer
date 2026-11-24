@@ -300,7 +300,7 @@ struct ContentView: View {
         #endif
         .sheet(isPresented: $showAlbumView) {
             if let album = selectedAlbum {
-                AlbumDetailView(album: album, playlistManager: playlistManager)
+                AlbumDetailView(album: album, playlistManager: playlistManager, player: playerManager)
             }
         }
         .sheet(isPresented: $showShazamNoMatchSheet) {
@@ -871,9 +871,10 @@ struct ContentView: View {
                 let detailedSong = try await song.with([.albums])
                 if let album = detailedSong.albums?.first {
                     let detailedAlbum = try await album.with([.tracks])
+                    // REM: review 007/011 (2026-11-24): play through the manager first, then
+                    // REM: write the album playlist without holding up playback.
+                    await playerManager.playItems(Array(detailedAlbum.tracks ?? []), title: detailedAlbum.title)
                     await playlistManager.addAlbumPlaylist(detailedAlbum)
-                    ApplicationMusicPlayer.shared.queue = .init(for: detailedAlbum.tracks ?? [])
-                    try await ApplicationMusicPlayer.shared.play()
                 }
             } catch {
                 print("Play album error: \(error)")
@@ -982,6 +983,22 @@ struct ContentView: View {
 
     private var stationDisplay: some View {
         VStack(spacing: 4) {
+            // REM: review 002/035 (2026-11-24): playback errors were set but never shown.
+            // REM: One short line on the player card covers them all.
+            if !playerManager.errorMessage.isEmpty {
+                Label(playerManager.errorMessage, systemImage: "exclamationmark.triangle")
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .foregroundStyle(Color.orange.opacity(0.9))
+                    .multilineTextAlignment(.center)
+                    .accessibilityLabel(playerManager.errorMessage)
+            }
+            if playerManager.currentStation == .none, !playerManager.nowPlayingTitle.isEmpty {
+                // Albums, playlists and songs from My Music (review 007).
+                Text(playerManager.nowPlayingTitle)
+                    .font(.system(size: 18, weight: .medium, design: .monospaced))
+                    .foregroundStyle(iceAccent.opacity(0.5))
+                    .lineLimit(1)
+            }
             if playerManager.currentStation != .none {
                 Text(playerManager.nowPlayingTitle)
                     .font(.system(size: 18, weight: .medium, design: .monospaced))

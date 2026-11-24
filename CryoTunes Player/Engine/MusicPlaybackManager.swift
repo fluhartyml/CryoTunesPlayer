@@ -4,11 +4,9 @@
 //
 //  Created by Michael Fluharty on 3/31/26.
 //
-//  DIAMOND RULE: You can only ADD to CryoKit. You are NOT allowed to
-//  subtract code or features. No removals without express written consent.
-//
-//  Claude may not remove, subtract, or modify code within CryoKit.
-//  Claude may, however, add to it with express written consent from human.
+//  REM: CryoKit is RETIRED. His word 2026-11-24: "we retired cryokit and its hard
+//  REM: coded in the apps now." This file is CryoTunes' own code (vendored 2026-06-28,
+//  REM: commit 344b210); the old CryoKit Diamond Rule no longer applies here (review 001).
 //
 //  DATA LAYER ONLY: CryoKit is a data and information relay.
 //  It provides playback, station catalog, library access, and weather data.
@@ -49,6 +47,8 @@ public class MusicPlaybackManager {
     public var sleepTimerRemaining = ""
     public var isAuthorized = false
     public var errorMessage = ""
+    /// Shown on the player card when a station finds nothing (review 003).
+    public static let stationUnavailable = "This station isn't available right now."
     public var playbackTime: TimeInterval = 0
     public var trackDuration: TimeInterval = 0
 
@@ -129,12 +129,16 @@ public class MusicPlaybackManager {
 
         let term = station.searchTerm
         var name = station.rawValue
+        // REM: review 003 (2026-11-24): track whether any search actually found something.
+        // REM: Before, a station that found nothing still claimed to be playing.
+        var found = false
 
         do {
             // Personal station — fetch dynamically from user's Apple Music account
             if station == .personalStation {
                 if let result = try await playPersonalStation() {
                     name = result
+                    found = true
                 }
             } else if station.decade != nil {
                 // REM  YEAR CHANNELS PLAY ONLY THEIR OWN YEAR — TestFlight 3.0.2 (76), iPad Pro, ~Nov 5: "Y2K error, its got
@@ -145,13 +149,13 @@ public class MusicPlaybackManager {
                 let year = station.rawValue
                 if let result = try await searchPlaylist(term: term, year: year) {
                     name = result
+                    found = true
                 } else {
-                    player.stop()
-                    await MainActor.run {
-                        currentStation = station
-                        nowPlayingTitle = "No \(year) playlist on Apple Music right now"
-                        isPlaying = false
-                    }
+                    // REM: review 004 (2026-11-24): go through stop() so stoppedByUser is set and
+                    // REM: the now-playing loop can't refill the old title and art under this message.
+                    stop()
+                    currentStation = station
+                    nowPlayingTitle = "No \(year) playlist on Apple Music right now"
                     return
                 }
             } else {
@@ -159,39 +163,50 @@ public class MusicPlaybackManager {
                 case .stationByID:
                     if let stationID = station.stationID,
                        let result = try await playStationByID(stationID) {
-                        name = result
+                        name = result; found = true
                     } else if let result = try await searchStation(term: term) {
-                        name = result
+                        name = result; found = true
                     }
                 case .stationFirst:
                     if let result = try await searchStation(term: term) {
-                        name = result
+                        name = result; found = true
                     } else if let result = try await searchPlaylist(term: term) {
-                        name = result
+                        name = result; found = true
                     }
                 case .stationOnly:
                     if let result = try await searchStation(term: term) {
-                        name = result
+                        name = result; found = true
                     }
                 case .playlistFirst:
                     if let result = try await searchPlaylist(term: term) {
-                        name = result
+                        name = result; found = true
                     } else if let result = try await searchStation(term: term) {
-                        name = result
+                        name = result; found = true
                     }
                 case .albumFirst:
                     if let result = try await searchAlbum(term: term) {
-                        name = result
+                        name = result; found = true
                     } else if let result = try await searchPlaylist(term: term) {
-                        name = result
+                        name = result; found = true
                     }
                 }
+            }
+
+            if !found {
+                // REM: review 003: nothing played. Stop whatever was still playing, keep the
+                // REM: station selected (the failure monitor offers Tell the Developer), but no
+                // REM: "playing" readout and the play button stays on Play.
+                stop()
+                currentStation = station
+                errorMessage = Self.stationUnavailable
+                return
             }
 
             await MainActor.run {
                 currentStation = station
                 nowPlayingTitle = name
                 isPlaying = true
+                errorMessage = ""
             }
         } catch {
             await MainActor.run {
@@ -499,6 +514,27 @@ public class MusicPlaybackManager {
             }
         } catch {
             await MainActor.run { errorMessage = "Unable to play. Check your connection." }
+        }
+    }
+
+    /// REM: review 005/006/007 (2026-11-24): one path for "play these, starting here" —
+    /// REM: playlist rows, an artist's songs, and albums all go through the manager, so
+    /// REM: the card's title updates and the queue continues past the tapped song.
+    public func playItems<Item: PlayableMusicItem>(_ items: [Item], startingAt start: Item? = nil,
+                                                   title: String) async {
+        let authorized = await requestAuthorization()
+        guard authorized, !items.isEmpty else { return }
+
+        do {
+            player.queue = ApplicationMusicPlayer.Queue(for: items, startingAt: start)
+            try await player.prepareToPlay()
+            try await player.play()
+            currentStation = .none
+            nowPlayingTitle = title
+            isPlaying = true
+            errorMessage = ""
+        } catch {
+            errorMessage = "Unable to play. Check your connection."
         }
     }
 
