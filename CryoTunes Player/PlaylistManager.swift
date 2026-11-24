@@ -30,6 +30,16 @@ final class PlaylistManager {
         let name = "\(title) - \(album.artistName)"
         let description = "Album playlist created by CryoTunes Player"
         do {
+            // REM: review 011 (2026-11-24): the comment above always promised "skips if
+            // REM: already exists", but findOrCreate found the playlist and every track was
+            // REM: added again on each play. An existing album playlist is now left alone.
+            if cache[name] != nil { return }
+            var existing = MusicLibraryRequest<Playlist>()
+            existing.filter(matching: \.name, equalTo: name)
+            if let found = try await existing.response().items.first {
+                cache[name] = found
+                return
+            }
             let playlist = try await findOrCreate(name: name, description: description)
             if let tracks = album.tracks {
                 for track in tracks {
