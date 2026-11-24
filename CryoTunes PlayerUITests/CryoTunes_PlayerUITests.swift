@@ -33,7 +33,14 @@ final class CryoTunes_PlayerUITests: XCTestCase {
     private var screen: CGRect { app.windows.firstMatch.frame }
     /// Card Position shows on the Duo, iPad and Mac, not a regular iPhone. The iPhone sims we
     /// run have no hinge, so idiom alone tells them apart here.
-    private var hasCardPosition: Bool { UIDevice.current.userInterfaceIdiom != .phone }
+    /// REM: review 038 (2026-11-24): UIDevice doesn't exist on the Mac, so the Mac always has it.
+    private var hasCardPosition: Bool {
+        #if os(macOS)
+        true
+        #else
+        UIDevice.current.userInterfaceIdiom != .phone
+        #endif
+    }
 
     private func openSettings() {
         app.buttons["Settings"].tap()
