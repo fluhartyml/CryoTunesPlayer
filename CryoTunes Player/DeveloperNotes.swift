@@ -17,6 +17,9 @@
 // REM: 2026-11-24: his yes (review sheet line 032). He SUBMITTED the CarPlay entitlement
 // REM: request to Apple 11-24. The CarPlay Entitlement Addendum §2 forbids using the
 // REM: CarPlay APIs until Apple grants the entitlement — no CarPlay code before approval.
+// REM: 2026-11-25: GRANTED (Apple email "assigned to your account"); he enabled CarPlay Audio App on the
+// REM: App ID (a managed capability) 11:59. Built: CarPlaySceneDelegate.swift (station tabs + Now
+// REM: Playing), Info.plist CarPlay scene, CryoTunes Player-iOS.entitlements (iPhone/iPad only).
 // ############################################################
 //
 // ============================================================

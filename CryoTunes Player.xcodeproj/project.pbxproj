@@ -291,8 +291,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "CryoTunes Player/CryoTunes Player.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "CryoTunes Player/CryoTunes Player-iOS.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "CryoTunes Player/CryoTunes Player-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -356,8 +358,10 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				AUTOMATION_APPLE_EVENTS = NO;
 				CODE_SIGN_ENTITLEMENTS = "CryoTunes Player/CryoTunes Player.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphoneos*]" = "CryoTunes Player/CryoTunes Player-iOS.entitlements";
+				"CODE_SIGN_ENTITLEMENTS[sdk=iphonesimulator*]" = "CryoTunes Player/CryoTunes Player-iOS.entitlements";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				ENABLE_APP_SANDBOX = YES;
 				ENABLE_HARDENED_RUNTIME = YES;
@@ -535,7 +539,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
@@ -561,7 +565,7 @@
 			buildSettings = {
 				BUNDLE_LOADER = "$(TEST_HOST)";
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
@@ -586,7 +590,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
@@ -611,7 +615,7 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 126;
+				CURRENT_PROJECT_VERSION = 127;
 				DEVELOPMENT_TEAM = 3X3F6UJ44H;
 				GENERATE_INFOPLIST_FILE = YES;
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
